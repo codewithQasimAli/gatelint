@@ -1,0 +1,38 @@
+# gatelint job for GitLab CI.
+#
+# Include it from your .gitlab-ci.yml:
+#
+#   include:
+#     - remote: https://raw.githubusercontent.com/codewithQasimAli/gatelint/main/templates/gatelint.gitlab-ci.yml
+#
+# and override the variables on the job if needed:
+#
+#   gatelint:
+#     variables:
+#       GATELINT_FAIL_ON: medium
+#
+# Findings are published as a Code Quality report, so they appear in the
+# merge request widget.
+
+gatelint:
+  stage: test
+  image: golang:1.24
+  variables:
+    GATELINT_VERSION: latest
+    GATELINT_PATH: "."
+    GATELINT_FAIL_ON: high
+    GATELINT_REPORT: gl-code-quality-report.json
+  script:
+    - go install "github.com/codewithQasimAli/gatelint/cmd/gatelint@${GATELINT_VERSION}"
+    - export PATH="$(go env GOPATH)/bin:$PATH"
+    - gatelint scan $GATELINT_PATH --format codequality --output "$GATELINT_REPORT" --fail-on none --quiet # gatelint:ignore GL006 report-only run; the next command gates on the same scan
+    - gatelint scan $GATELINT_PATH --fail-on "$GATELINT_FAIL_ON"
+  artifacts:
+    when: always
+    reports:
+      codequality: $GATELINT_REPORT
+    paths:
+      - $GATELINT_REPORT
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH

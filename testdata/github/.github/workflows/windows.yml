@@ -1,0 +1,10 @@
+name: windows
+on: push
+jobs:
+  scan:
+    runs-on: windows-latest
+    steps:
+      - name: Trivy in pwsh
+        run: trivy fs --exit-code 0 .
+      - name: Bandit in pwsh swallowed
+        run: bandit -r src || Write-Host "bandit failed"

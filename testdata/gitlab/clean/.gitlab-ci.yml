@@ -1,0 +1,25 @@
+stages: [security]
+
+default:
+  image: alpine:3.20
+
+secrets:
+  stage: security
+  image: zricethezav/gitleaks:v8.21.2
+  script:
+    - gitleaks detect --source . --verbose
+
+sast:
+  stage: security
+  image: semgrep/semgrep
+  script:
+    - semgrep ci
+
+container:
+  stage: security
+  script:
+    - trivy image --exit-code 1 --severity CRITICAL $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: manual

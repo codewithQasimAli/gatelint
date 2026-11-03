@@ -1,0 +1,21 @@
+# Binaries and build output
+/gatelint
+*.exe
+*.test
+dist/
+
+# Coverage and reports
+*.out
+coverage*.html
+coverage.txt
+*.sarif
+gl-code-quality-report.json
+
+# Field-test clones (never committed)
+.fieldtest/
+
+# Editors and OS files
+.idea/
+.vscode/
+*.swp
+.DS_Store

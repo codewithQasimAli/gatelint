@@ -1,0 +1,39 @@
+name: flags
+on: push
+env:
+  TRIVY_EXIT_CODE: "0"
+jobs:
+  cli:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Bandit exit zero
+        run: python -m bandit -r src --exit-zero
+      - name: Checkov soft fail
+        run: checkov -d infra --soft-fail
+      - name: Gitleaks exit code zero
+        run: gitleaks detect --source . --exit-code=0
+      - name: npm audit none
+        run: npm audit --audit-level=none
+      - name: Trivy via environment
+        run: trivy fs --severity HIGH,CRITICAL .
+      - name: Trivy in docker
+        run: docker run --rm -v "$PWD:/src" aquasec/trivy:0.58.1 fs --exit-code 0 /src
+      - name: tfsec short flag
+        run: tfsec . -s
+      - name: gosec no-fail
+        run: gosec -no-fail ./...
+      - name: Container action
+        uses: docker://aquasec/tfsec:latest
+        with:
+          args: --soft-fail .
+  not-neutered:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Mentions only
+        run: |
+          echo "do not use --exit-zero with bandit"
+          grep -r "soft-fail" docs/ || true
+      - name: Soft fail explicitly false
+        run: checkov -d infra --soft-fail=false
+      - name: Later flag overrides
+        run: gitleaks detect --exit-code 0 --exit-code 1

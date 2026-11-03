@@ -1,0 +1,21 @@
+name: redirect-report
+on: push
+jobs:
+  integration:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Scan a deliberately vulnerable fixture and check the report
+        run: |
+          checkov -s -d vulnerable-fixture > checkov_report.txt
+          grep "CKV_AWS_20" checkov_report.txt
+          exit $?
+      - name: Report kept but never checked
+        run: checkov -s -d infra > checkov_unchecked.txt
+      - name: Tee into a report that is gated later
+        shell: bash
+        run: gitleaks detect --exit-code 0 | tee leaks.txt
+      - name: Gate
+        run: |
+          if grep -q "leaks found" leaks.txt; then
+            exit 1
+          fi

@@ -1,0 +1,4 @@
+on: push
+jobs:
+  scan:
+	runs-on: ubuntu-latest

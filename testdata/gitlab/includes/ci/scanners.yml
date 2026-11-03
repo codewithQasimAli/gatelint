@@ -1,0 +1,17 @@
+.scan-setup:
+  script:
+    - echo "preparing scan"
+    - set +e
+
+.python-scan:
+  image: python:3.12
+  variables:
+    BANDIT_FLAGS: "--exit-zero"
+
+.allowed:
+  allow_failure: true
+
+dependency-check:
+  stage: test
+  script:
+    - npm audit --audit-level=none

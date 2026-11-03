@@ -1,0 +1,54 @@
+name: swallow
+on: [push, pull_request]
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Trivy or true
+        run: trivy fs --exit-code 1 . || true
+      - name: Gitleaks or echo
+        run: |
+          gitleaks detect --source . || echo "leaks found, continuing"
+      - name: Negated semgrep
+        run: "! semgrep ci"
+      - name: And list in the middle
+        run: |
+          bandit -r src && echo "bandit passed"
+          echo "next step"
+      - name: If without failing branch
+        run: |
+          if ! checkov -d infra; then
+            echo "::warning::checkov found problems"
+          fi
+      - name: Command substitution
+        run: |
+          echo "$(npm audit)" > audit.txt
+          cat audit.txt
+      - name: Background
+        run: |
+          snyk test &
+          echo started
+      - name: Exit zero
+        run: tfsec . || exit 0
+  not-scanners:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ordinary commands may be swallowed
+        run: |
+          npm ci || true
+          echo "trivy is installed" || true
+          rm -rf build || :
+      - name: Scanner failure handled
+        run: |
+          trivy fs --exit-code 1 . || exit 1
+          if ! gitleaks detect; then
+            echo "leaks found"
+            exit 1
+          fi
+          grype dir:. --fail-on high || rc=$?
+          exit ${rc:-0}
+      - name: And list at the end gates
+        run: |
+          echo "scanning"
+          semgrep ci && echo "semgrep passed"

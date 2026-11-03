@@ -1,0 +1,89 @@
+SEVERITY  RULE   LOCATION                                       JOB / STEP                         MESSAGE
+HIGH      GL005  testdata/gitlab/basic/.gitlab-ci.yml:8         trivy                              Trivy job has allow_failure: true, so a failing scan does not fail the pipeline
+          fix: remove allow_failure from the scanner job (or drop the scanner's failure code from exit_codes)
+HIGH      GL005  testdata/gitlab/basic/.gitlab-ci.yml:15        bandit                             Bandit job allows exit code 1, which is the scanner's failure code, so findings never fail the pipeline
+          fix: remove allow_failure from the scanner job (or drop the scanner's failure code from exit_codes)
+HIGH      GL001  testdata/gitlab/basic/.gitlab-ci.yml:28        semgrep-or-true                    Semgrep failure is swallowed by `|| true`
+          fix: remove the "|| true" (or equivalent) so a failing scan fails the job
+HIGH      GL002  testdata/gitlab/basic/.gitlab-ci.yml:34        checkov-set-e                      Checkov runs while errexit is off ("set +e" on line 33 disables it) and is not the last command, so a failing scan does not fail the job
+          fix: remove "set +e", or capture the status with rc=$? and exit with it
+HIGH      GL005  testdata/gitlab/basic/.gitlab-ci.yml:42        tfsec-after-script / after_script  tfsec runs in after_script; GitLab ignores the exit status of after_script, so the scan can never fail the job
+          fix: move the scanner from after_script to script
+HIGH      GL009  testdata/gitlab/basic/.gitlab-ci.yml:48        manual-scan                        Grype job has when: manual, so it only runs when started by hand and is allowed to fail
+          fix: remove the condition that disables the scanner
+HIGH      GL009  testdata/gitlab/basic/.gitlab-ci.yml:55        never-scan                         every rule of the npm audit job resolves to when: never, so the job never runs
+          fix: remove the condition that disables the scanner
+MEDIUM    GL005  testdata/gitlab/basic/.gitlab-ci.yml:65        conditional-allow                  pip-audit job sets allow_failure in 1 of 2 rules, so the scan cannot fail the pipeline when those rules match
+          fix: remove allow_failure from the scanner job (or drop the scanner's failure code from exit_codes)
+HIGH      GL006  testdata/gitlab/includes/.gitlab-ci.yml:20     sast-bandit                        Bandit is run with "--exit-zero", which exits 0 even when issues are found
+          fix: remove the flag so the scanner exits non-zero on findings
+HIGH      GL005  testdata/gitlab/includes/ci/scanners.yml:12    secrets                            Gitleaks job has allow_failure: true, so a failing scan does not fail the pipeline
+          fix: remove allow_failure from the scanner job (or drop the scanner's failure code from exit_codes)
+HIGH      GL006  testdata/gitlab/includes/ci/scanners.yml:17    dependency-check                   npm audit is run with "--audit-level=none", which never exits non-zero
+          fix: remove the flag so the scanner exits non-zero on findings
+MEDIUM    GL003  testdata/gitlab/pipefail/.gitlab-ci.yml:4      trivy-tee                          Trivy output is piped into "tee" and the shell does not set pipefail, so the step's status is that of "tee"
+          fix: remove "set +o pipefail" (GitLab Runner enables pipefail by default) or add "set -o pipefail" before the pipeline
+LOW       GL006  testdata/gitlab/report-only/.gitlab-ci.yml:9   trivy-report                       Trivy runs with TRIVY_EXIT_CODE=0 in its environment, which keeps the exit code at 0 when vulnerabilities are found
+          note: a later command at testdata/gitlab/report-only/.gitlab-ci.yml:16 appears to fail the build based on trivy.json
+          fix: remove the flag so the scanner exits non-zero on findings
+HIGH      GL006  testdata/gitlab/report-only/.gitlab-ci.yml:22  bandit-report                      Bandit is run with "--exit-zero", which exits 0 even when issues are found
+          fix: remove the flag so the scanner exits non-zero on findings
+MEDIUM    GL001  testdata/gitlab/report-only/.gitlab-ci.yml:28  semgrep-sast-report                Semgrep failure is swallowed by `|| true`
+          note: results are published as the GitLab report artifact gl-sast-report.json, which blocks merges only through merge request approval policies
+          fix: remove the "|| true" (or equivalent) so a failing scan fails the job
+HIGH      GL001  testdata/gitlab/report-only/.gitlab-ci.yml:36  semgrep-plain-artifact             Semgrep failure is swallowed by `|| true`
+          fix: remove the "|| true" (or equivalent) so a failing scan fails the job
+HIGH      GL009  testdata/gitlab/templates/.gitlab-ci.yml:8                                        GitLab Secret Detection is disabled by SECRET_DETECTION_DISABLED: "true"
+          fix: remove the condition that disables the scanner
+HIGH      GL009  testdata/gitlab/templates/.gitlab-ci.yml:12    semgrep-sast                       every rule of the GitLab SAST job resolves to when: never, so the job never runs
+          fix: remove the condition that disables the scanner
+HIGH      GL009  testdata/gitlab/templates/.gitlab-ci.yml:16    container_scanning                 GitLab Container Scanning is disabled by CONTAINER_SCANNING_DISABLED: "1"
+          fix: remove the condition that disables the scanner
+
+Gate coverage
+  testdata/gitlab/basic/.gitlab-ci.yml
+    Trivy      trivy                              line 7     neutered (GL005)
+    Bandit     bandit                             line 14    neutered (GL005)
+    Gitleaks   gitleaks-other-codes               line 21    gating
+    Semgrep    semgrep-or-true                    line 28    neutered (GL001)
+    Checkov    checkov-set-e                      line 34    neutered (GL002)
+    tfsec      tfsec-after-script / after_script  line 42    neutered (GL005)
+    Grype      manual-scan                        line 47    disabled (GL009)
+    npm audit  never-scan                         line 53    disabled (GL009)
+    pip-audit  conditional-allow                  line 62    neutered (GL005)
+    Gitleaks   gating                             line 77    gating
+    Semgrep    gating                             line 78    gating
+  testdata/gitlab/clean/.gitlab-ci.yml
+    Gitleaks  secrets    line 10    gating
+    Semgrep   sast       line 16    gating
+    Trivy     container  line 21    gating
+  testdata/gitlab/includes/.gitlab-ci.yml
+    Bandit    sast-bandit       line 20    neutered (GL006)
+    Gitleaks  secrets           line 25    neutered (GL005)
+    Trivy     broken-reference  line 30    gating
+  testdata/gitlab/includes/ci/scanners.yml
+    npm audit  dependency-check  line 17    neutered (GL006)
+  testdata/gitlab/pipefail/.gitlab-ci.yml
+    Trivy     trivy-tee             line 4     neutered (GL003)
+    Gitleaks  gitleaks-tee-default  line 8     gating
+  testdata/gitlab/report-only/.gitlab-ci.yml
+    Trivy    trivy-report            line 9     neutered (GL006)
+      a later command at testdata/gitlab/report-only/.gitlab-ci.yml:16 appears to fail the build based on trivy.json
+    Bandit   bandit-report           line 22    neutered (GL006)
+    Semgrep  semgrep-sast-report     line 28    neutered (GL001)
+      results are published as the GitLab report artifact gl-sast-report.json, which blocks merges only through merge request approval policies
+    Semgrep  semgrep-plain-artifact  line 36    neutered (GL001)
+  testdata/gitlab/templates/.gitlab-ci.yml
+    GitLab Secret Detection     (included template)  line 3     disabled (GL009)
+    GitLab Dependency Scanning  (included template)  line 4     non-gating
+      GitLab security templates do not fail pipelines on findings; enforce results with merge request approval policies
+    GitLab SAST                 semgrep-sast         line 10    disabled (GL009)
+    GitLab Container Scanning   container_scanning   line 14    disabled (GL009)
+
+Notes
+  testdata/gitlab/includes/.gitlab-ci.yml:3: local include ci/missing.yml was not found
+  testdata/gitlab/includes/.gitlab-ci.yml:4: remote include https://example.com/shared/ci.yml is out of scope
+  testdata/gitlab/includes/.gitlab-ci.yml:5: include from project example-group/ci-templates is out of scope
+  testdata/gitlab/includes/.gitlab-ci.yml:29: !reference [.does-not-exist, script] in job "broken-reference" could not be resolved; partial result
+
+Summary: 19 findings (15 high, 3 medium, 1 low, 0 info), 0 suppressed; 28 scanners in 7 files: 8 gating, 14 neutered, 1 non-gating, 5 disabled

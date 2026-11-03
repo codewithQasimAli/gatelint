@@ -1,0 +1,20 @@
+name: disabled
+on: push
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Semgrep turned off
+        if: false
+        run: semgrep ci
+      - name: Gitleaks turned off
+        if: ${{ false }}
+        uses: gitleaks/gitleaks-action@v2
+      - name: Conditional is fine
+        if: github.event_name == 'pull_request'
+        run: semgrep ci
+  off:
+    if: ${{ false && github.event_name == 'push' }}
+    runs-on: ubuntu-latest
+    steps:
+      - run: trivy fs --exit-code 1 . || true

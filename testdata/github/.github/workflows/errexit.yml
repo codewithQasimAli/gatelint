@@ -1,0 +1,41 @@
+name: errexit
+on: push
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: set +e before gitleaks
+        run: |
+          set +e
+          gitleaks detect --source .
+          echo "scan finished"
+      - name: Shell without -e
+        shell: bash {0}
+        run: |
+          bandit -r src
+          echo "done"
+      - name: set +o errexit
+        run: |
+          set +o errexit
+          checkov -d . --quiet
+          echo ok
+      - name: Status captured
+        run: |
+          set +e
+          gitleaks detect --source .
+          rc=$?
+          set -e
+          echo "gitleaks exited with $rc"
+          exit $rc
+      - name: Scanner is the last command
+        run: |
+          set +e
+          echo "starting"
+          gitleaks detect --source .
+      - name: errexit restored
+        run: |
+          set +e
+          ./flaky-setup.sh
+          set -e
+          gitleaks detect --source .
+          echo done

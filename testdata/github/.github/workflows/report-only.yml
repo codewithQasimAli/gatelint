@@ -1,0 +1,42 @@
+name: report-only
+on: push
+jobs:
+  trivy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trivy SARIF for code scanning
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: fs
+          format: sarif
+          output: trivy.sarif
+          exit-code: '0'
+      - uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy.sarif
+      - name: Trivy gate
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: fs
+          exit-code: '1'
+          severity: CRITICAL
+  semgrep:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Semgrep SARIF
+        run: semgrep scan --config auto --sarif --output semgrep.sarif .
+      - uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: semgrep.sarif
+  gitleaks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Report
+        run: gitleaks detect --exit-code 0 --report-path leaks.json
+      - name: Gate on the report
+        run: |
+          count=$(jq length leaks.json)
+          if [ "$count" -gt 0 ]; then
+            echo "::error::$count leaks found"
+            exit 1
+          fi

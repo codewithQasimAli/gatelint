@@ -1,0 +1,69 @@
+name: gatelint
+description: Find security scanners in GitHub Actions and GitLab CI that can never fail the build.
+author: codewithQasimAli
+branding:
+  icon: shield
+  color: red
+
+inputs:
+  path:
+    description: Files or directories to scan, separated by spaces.
+    required: false
+    default: "."
+  fail-on:
+    description: Fail the step when findings at or above this severity exist (high, medium, low or none).
+    required: false
+    default: high
+  format:
+    description: Report format written to sarif-file (sarif, json, codequality or table).
+    required: false
+    default: sarif
+  sarif-file:
+    description: Path of the report file.
+    required: false
+    default: gatelint.sarif
+  version:
+    description: gatelint version to install (a release tag such as v0.1.0, or latest).
+    required: false
+    default: latest
+
+outputs:
+  sarif-file:
+    description: Path of the report file.
+    value: ${{ inputs.sarif-file }}
+
+runs:
+  using: composite
+  steps:
+    - name: Set up Go
+      uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+      with:
+        go-version: stable
+        cache: false
+
+    - name: Install gatelint
+      shell: bash
+      env:
+        GATELINT_VERSION: ${{ inputs.version }}
+      run: |
+        go install "github.com/codewithQasimAli/gatelint/cmd/gatelint@${GATELINT_VERSION}"
+        echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
+
+    - name: Write report
+      shell: bash
+      env:
+        GATELINT_PATH: ${{ inputs.path }}
+        GATELINT_FORMAT: ${{ inputs.format }}
+        GATELINT_REPORT: ${{ inputs.sarif-file }}
+      run: |
+        # shellcheck disable=SC2086 # path may hold several space-separated entries
+        gatelint scan $GATELINT_PATH --format "$GATELINT_FORMAT" --output "$GATELINT_REPORT" --fail-on none --quiet # gatelint:ignore GL006 report-only run; the next step gates on the same scan
+
+    - name: Check gates
+      shell: bash
+      env:
+        GATELINT_PATH: ${{ inputs.path }}
+        GATELINT_FAIL_ON: ${{ inputs.fail-on }}
+      run: |
+        # shellcheck disable=SC2086
+        gatelint scan $GATELINT_PATH --fail-on "$GATELINT_FAIL_ON"

@@ -1,0 +1,30 @@
+include:
+  - local: /ci/scanners.yml
+  - local: ci/missing.yml
+  - remote: https://example.com/shared/ci.yml
+  - project: example-group/ci-templates
+    file: /scan.yml
+
+variables:
+  SCAN_DIR: src
+
+.defaults: &defaults
+  stage: test
+  tags: [docker]
+
+sast-bandit:
+  <<: *defaults
+  extends: .python-scan
+  script:
+    - !reference [.scan-setup, script]
+    - bandit -r $SCAN_DIR $BANDIT_FLAGS
+
+secrets:
+  extends: .allowed
+  script:
+    - gitleaks detect --source .
+
+broken-reference:
+  script:
+    - !reference [.does-not-exist, script]
+    - trivy fs --exit-code 1 .

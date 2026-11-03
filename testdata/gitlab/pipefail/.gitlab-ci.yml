@@ -1,0 +1,8 @@
+trivy-tee:
+  script:
+    - set +o pipefail
+    - trivy fs --exit-code 1 . | tee trivy.txt
+
+gitleaks-tee-default:
+  script:
+    - gitleaks detect --source . | tee gitleaks.txt

@@ -1,0 +1,2074 @@
+{
+  "tool": {
+    "name": "gatelint",
+    "version": "dev"
+  },
+  "summary": {
+    "findings": 62,
+    "high": 43,
+    "medium": 9,
+    "low": 8,
+    "info": 2,
+    "suppressed": 2,
+    "files": 19,
+    "scanners": 97,
+    "status": {
+      "disabled": 3,
+      "gating": 33,
+      "neutered": 50,
+      "non-gating": 10,
+      "unknown": 1
+    }
+  },
+  "files": [
+    "testdata/github/.github/actions/scan/action.yml",
+    "testdata/github/.github/workflows/actions.yml",
+    "testdata/github/.github/workflows/clean.yml",
+    "testdata/github/.github/workflows/continue-on-error.yml",
+    "testdata/github/.github/workflows/crlf.yml",
+    "testdata/github/.github/workflows/defaults.yml",
+    "testdata/github/.github/workflows/disabled.yml",
+    "testdata/github/.github/workflows/errexit.yml",
+    "testdata/github/.github/workflows/expressions.yml",
+    "testdata/github/.github/workflows/fallback.yml",
+    "testdata/github/.github/workflows/flags.yml",
+    "testdata/github/.github/workflows/pipefail.yml",
+    "testdata/github/.github/workflows/redirect-report.yml",
+    "testdata/github/.github/workflows/report-only.yml",
+    "testdata/github/.github/workflows/reusable-scan.yml",
+    "testdata/github/.github/workflows/reusable.yml",
+    "testdata/github/.github/workflows/suppressions.yml",
+    "testdata/github/.github/workflows/swallow.yml",
+    "testdata/github/.github/workflows/windows.yml"
+  ],
+  "findings": [
+    {
+      "ruleId": "GL006",
+      "title": "Neutering flag on the scanner command line",
+      "severity": "high",
+      "confidence": "high",
+      "file": "testdata/github/.github/actions/scan/action.yml",
+      "line": 8,
+      "column": 26,
+      "job": "Security scan",
+      "step": "Bandit",
+      "scanner": "Bandit",
+      "message": "Bandit is run with \"--exit-zero\", which exits 0 even when issues are found",
+      "fix": "remove the flag so the scanner exits non-zero on findings",
+      "suppressed": false,
+      "fingerprint": "d655253acb9b27c03777480c2d624942"
+    },
+    {
+      "ruleId": "GL001",
+      "title": "Scanner failure swallowed by the shell",
+      "severity": "high",
+      "confidence": "high",
+      "file": "testdata/github/.github/actions/scan/action.yml",
+      "line": 12,
+      "column": 9,
+      "job": "Security scan",
+      "step": "pip-audit",
+      "scanner": "pip-audit",
+      "message": "pip-audit failure is swallowed by `|| echo \"pip-audit failed\"`",
+      "fix": "remove the \"|| true\" (or equivalent) so a failing scan fails the job",
+      "suppressed": false,
+      "fingerprint": "4283e856d684b1c9f0911db0bf987da4"
+    },
+    {
+      "ruleId": "GL008",
+      "title": "Neutering input on a scanner action",
+      "severity": "high",
+      "confidence": "high",
+      "file": "testdata/github/.github/workflows/actions.yml",
+      "line": 10,
+      "column": 11,
+      "job": "neutered",
+      "step": "aquasecurity/trivy-action@0.28.0",
+      "scanner": "Trivy",
+      "message": "aquasecurity/trivy-action input \"exit-code: 0\" makes the action exit 0 when vulnerabilities are found",
+      "fix": "remove the input (or set it to its gating value) so findings fail the step",
+      "suppressed": false,
+      "fingerprint": "9348d0f9dd902986b0b79d3b7dd097a5"
+    },
+    {
+      "ruleId": "GL008",
+      "title": "Neutering input on a scanner action",
+      "severity": "high",
+      "confidence": "high",
+      "file": "testdata/github/.github/workflows/actions.yml",
+      "line": 14,
+      "column": 11,
+      "job": "neutered",
+      "step": "anchore/scan-action@v6",
+      "scanner": "Grype",
+      "message": "anchore/scan-action input \"fail-build: false\" keeps the step green whatever Grype finds",
+      "fix": "remove the input (or set it to its gating value) so findings fail the step",
+      "suppressed": false,
+      "fingerprint": "4a410006de54b2b9109e7e853a6e1a45"
+    },
+    {
+      "ruleId": "GL008",
+      "title": "Neutering input on a scanner action",
+      "severity": "high",
+      "confidence": "high",
+      "file": "testdata/github/.github/workflows/actions.yml",
+      "line": 18,
+      "column": 11,
+      "job": "neutered",
+      "step": "bridgecrewio/checkov-action@v12",
+      "scanner": "Checkov",
+      "message": "bridgecrewio/checkov-action input \"soft_fail: true\" makes Checkov exit 0 when checks fail",
+      "fix": "remove the input (or set it to its gating value) so findings fail the step",
+      "suppressed": false,
+      "fingerprint": "be48699ed6c07cbf0813d811366156bc"
+    },
+    {
+      "ruleId": "GL008",
+      "title": "Neutering input on a scanner action",
+      "severity": "high",
+      "confidence": "high",
+      "file": "testdata/github/.github/workflows/actions.yml",
+      "line": 22,
+      "column": 11,
+      "job": "neutered",
+      "step": "pypa/gh-action-pip-audit@v1.1.0",
+      "scanner": "pip-audit",
+      "message": "pypa/gh-action-pip-audit input \"internal-be-careful-allow-failure: true\" keeps the step green when vulnerabilities are found",
+      "fix": "remove the input (or set it to its gating value) so findings fail the step",
+      "suppressed": false,
+      "fingerprint": "e2768794ecac16445ee4a464c046eccd"
+    },
+    {
+      "ruleId": "GL008",
+      "title": "Neutering input on a scanner action",
+      "severity": "high",
+      "confidence": "high",
+      "file": "testdata/github/.github/workflows/actions.yml",
+      "line": 25,
+      "column": 11,
+      "job": "neutered",
+      "step": "securego/gosec@v2.22.0",
+      "scanner": "gosec",
+      "message": "securego/gosec input args passes \"-no-fail\", which exits 0 even when issues are found",
+      "fix": "remove the input (or set it to its gating value) so findings fail the step",
+      "suppressed": false,
+      "fingerprint": "fa720af3b4acb5c65ce3623e716ecec5"
+    },
+    {
+      "ruleId": "GL008",
+      "title": "Neutering input on a scanner action",
+      "severity": "high",
+      "confidence": "high",
+      "file": "testdata/github/.github/workflows/actions.yml",
+      "line": 28,
+      "column": 11,
+      "job": "neutered",
+      "step": "aquasecurity/tfsec-action@v1.0.3",
+      "scanner": "tfsec",
+      "message": "aquasecurity/tfsec-action input \"soft_fail: true\" makes tfsec exit 0 when checks fail",
+      "fix": "remove the input (or set it to its gating value) so findings fail the step",
+      "suppressed": false,
+      "fingerprint": "2d2e1f54fd397d0a8ea95ba72a582e97"
+    },
+    {
+      "ruleId": "GL007",
+      "title": "Scanner does not gate by default",
+      "severity": "info",
+      "confidence": "high",
+      "file": "testdata/github/.github/workflows/actions.yml",
+      "line": 29,
+      "column": 9,
+      "job": "neutered",
+      "step": "snyk/actions/node@master",
+      "scanner": "Snyk",
+      "message": "Snyk: snyk monitor uploads a snapshot and never fails on vulnerabilities",
+      "fix": "add a separate command that fails on findings (for Snyk, \"snyk test\")",
+      "suppressed": false,
+      "fingerprint": "a29810cf98a535284256771d8201f41f"
+    },
+    {
+      "ruleId": "GL004",
+      "title": "continue-on-error on a scanner step or job",
+      "severity": "high",
+      "confidence": "high",
+      "file": "testdata/github/.github/workflows/continue-on-error.yml",
+      "line": 9,
+      "column": 9,
+      "job": "step-level",
+      "step": "Semgrep",
+      "scanner": "Semgrep",
+      "message": "Semgrep runs in a step with continue-on-error: true, so a failing scan does not fail the workflow",
+      "fix": "remove continue-on-error, or move non-blocking experiments to a separate job",
+      "suppressed": false,
+      "fingerprint": "21b839cef96c16b797942d2227de3834"
+    },
+    {
+      "ruleId": "GL004",
+      "title": "continue-on-error on a scanner step or job",
+      "severity": "medium",
+      "confidence": "high",
+      "conditional": true,
+      "file": "testdata/github/.github/workflows/continue-on-error.yml",
+      "line": 12,
+      "column": 9,
+      "job": "step-level",
+      "step": "Gitleaks",
+      "scanner": "Gitleaks",
+      "message": "Gitleaks runs in a step with continue-on-error: ${{ matrix.experimental }}, which disables the gate whenever the expression is true",
+      "fix": "remove continue-on-error, or move non-blocking experiments to a separate job",
+      "suppressed": false,
+      "fingerprint": "92e520307fc5a829cda670ddea981812"
+    },
+    {
+      "ruleId": "GL004",
+      "title": "continue-on-error on a scanner step or job",
+      "severity": "high",
+      "confidence": "high",
+      "file": "testdata/github/.github/workflows/continue-on-error.yml",
+      "line": 21,
+      "column": 5,
+      "job": "job-level",
+      "step": "Checkov",
+      "scanner": "Checkov",
+      "message": "Checkov runs in a job with continue-on-error: true, so a failing scan does not fail the workflow",
+      "fix": "remove continue-on-error, or move non-blocking experiments to a separate job",
+      "suppressed": false,
+      "fingerprint": "6c0f5dd03aaf01314986519609bcba5f"
+    },
+    {
+      "ruleId": "GL001",
+      "title": "Scanner failure swallowed by the shell",
+      "severity": "high",
+      "confidence": "high",
+      "file": "testdata/github/.github/workflows/crlf.yml",
+      "line": 10,
+      "column": 11,
+      "job": "scan",
+      "step": "CRLF line endings",
+      "scanner": "Bandit",
+      "message": "Bandit failure is swallowed by `|| true`",
+      "fix": "remove the \"|| true\" (or equivalent) so a failing scan fails the job",
+      "suppressed": false,
+      "fingerprint": "4a08ef427d406b46c78a6d64aeb465a5"
+    },
+    {
+      "ruleId": "GL007",
+      "title": "Scanner does not gate by default",
+      "severity": "medium",
+      "confidence": "high",
+      "file": "testdata/github/.github/workflows/defaults.yml",
+      "line": 8,
+      "column": 14,
+      "job": "non-gating",
+      "step": "Trivy without exit code",
+      "scanner": "Trivy",
+      "message": "Trivy exits 0 when it finds issues and no gating option is set",
+      "fix": "add --exit-code 1 so findings fail the build",
+      "suppressed": false,
+      "fingerprint": "bd11b5672168f8b5f7b7922dcd284583"
+    },
+    {
+      "ruleId": "GL007",
+      "title": "Scanner does not gate by default",
+      "severity": "medium",
+      "confidence": "high",
+      "file": "testdata/github/.github/workflows/defaults.yml",
+      "line": 10,
+      "column": 14,
+      "job": "non-gating",
+      "step": "Grype without fail-on",
+      "scanner": "Grype",
+      "message": "Grype exits 0 when it finds issues and no gating option is set",
+      "fix": "add --fail-on high so findings fail the build",
+      "suppressed": false,
+      "fingerprint": "adbf708c17e79fa0715c841ef62c7681"
+    },
+    {
+      "ruleId": "GL007",
+      "title": "Scanner does not gate by default",
+      "severity": "medium",
+      "confidence": "high",
+      "file": "testdata/github/.github/workflows/defaults.yml",
+      "line": 12,
+      "column": 14,
+      "job": "non-gating",
+      "step": "Semgrep scan without error",
+      "scanner": "Semgrep",
+      "message": "Semgrep exits 0 when it finds issues and no gating option is set",
+      "fix": "add --error so findings fail the build",
+      "suppressed": false,
+      "fingerprint": "f6174a5705a5e6482a86d6d5ee131d7c"
+    },
+    {
+      "ruleId": "GL007",
+      "title": "Scanner does not gate by default",
+      "severity": "medium",
+      "confidence": "high",
+      "file": "testdata/github/.github/workflows/defaults.yml",
+      "line": 14,
+      "column": 14,
+      "job": "non-gating",
+      "step": "TruffleHog without fail",
+      "scanner": "TruffleHog",
+      "message": "TruffleHog exits 0 when it finds issues and no gating option is set",
+      "fix": "add --fail so findings fail the build",
+      "suppressed": false,
+      "fingerprint": "7cff5d8bc354de8a25733f9d8df29733"
+    },
+    {
+      "ruleId": "GL007",
+      "title": "Scanner does not gate by default",
+      "severity": "medium",
+      "confidence": "high",
+      "file": "testdata/github/.github/workflows/defaults.yml",
+      "line": 16,
+      "column": 9,
+      "job": "non-gating",
+      "step": "Trivy action without exit-code",
+      "scanner": "Trivy",
+      "message": "aquasecurity/trivy-action@0.28.0 exits 0 when it finds issues and no gating option is set",
+      "fix": "set exit-code: '1' on the step so findings fail the build",
+      "suppressed": false,
+      "fingerprint": "677f3d6b0e79854c8b1696d8d39407e3"
+    },
+    {
+      "ruleId": "GL007",
+      "title": "Scanner does not gate by default",
+      "severity": "info",
+      "confidence": "high",
+      "file": "testdata/github/.github/workflows/defaults.yml",
+      "line": 20,
+      "column": 18,
+      "job": "non-gating",
+      "step": "Snyk monitor",
+      "scanner": "Snyk",
+      "message": "Snyk: snyk monitor uploads a snapshot and never fails on vulnerabilities",
+      "fix": "add a separate command that fails on findings (for Snyk, \"snyk test\")",
+      "suppressed": false,
+      "fingerprint": "a6108bb93cacd699062de09397e3c08f"
+    },
+    {
+      "ruleId": "GL009",
+      "title": "Scanner disabled",
+      "severity": "high",
+      "confidence": "high",
+      "file": "testdata/github/.github/workflows/disabled.yml",
+      "line": 8,
+      "column": 9,
+      "job": "scan",
+      "step": "Semgrep turned off",
+      "scanner": "Semgrep",
+      "message": "Semgrep step has if: false and never runs",
+      "fix": "remove the condition that disables the scanner",
+      "suppressed": false,
+      "fingerprint": "8e6865a646ad07873671a843d9e358e2"
+    },
+    {
+      "ruleId": "GL009",
+      "title": "Scanner disabled",
+      "severity": "high",
+      "confidence": "high",
+      "file": "testdata/github/.github/workflows/disabled.yml",
+      "line": 11,
+      "column": 9,
+      "job": "scan",
+      "step": "Gitleaks turned off",
+      "scanner": "Gitleaks",
+      "message": "Gitleaks step has if: ${{ false }} and never runs",
+      "fix": "remove the condition that disables the scanner",
+      "suppressed": false,
+      "fingerprint": "cffc2ded3f7fbb97e8e3a405c5c9d19f"
+    },
+    {
+      "ruleId": "GL009",
+      "title": "Scanner disabled",
+      "severity": "high",
+      "confidence": "high",
+      "file": "testdata/github/.github/workflows/disabled.yml",
+      "line": 17,
+      "column": 5,
+      "job": "off",
+      "step": "run: trivy fs --exit-code 1 . || true",
+      "scanner": "Trivy",
+      "message": "Trivy runs in job \"off\", which has if: ${{ false && github.event_name == 'push' }} and never runs",
+      "fix": "remove the condition that disables the scanner",
+      "suppressed": false,
+      "fingerprint": "ee7bd1eda34265e472d3b099f0eac292"
+    },
+    {
+      "ruleId": "GL002",
+      "title": "errexit disabled before a scanner",
+      "severity": "high",
+      "confidence": "high",
+      "file": "testdata/github/.github/workflows/errexit.yml",
+      "line": 10,
+      "column": 11,
+      "job": "scan",
+      "step": "set +e before gitleaks",
+      "scanner": "Gitleaks",
+      "message": "Gitleaks runs while errexit is off (\"set +e\" on line 9 disables it) and is not the last command, so a failing scan does not fail the job",
+      "fix": "remove \"set +e\", or capture the status with rc=$? and exit with it",
+      "suppressed": false,
+      "fingerprint": "796211a75502fe2f7f0122cb0996af7c"
+    },
+    {
+      "ruleId": "GL002",
+      "title": "errexit disabled before a scanner",
+      "severity": "high",
+      "confidence": "high",
+      "file": "testdata/github/.github/workflows/errexit.yml",
+      "line": 15,
+      "column": 11,
+      "job": "scan",
+      "step": "Shell without -e",
+      "scanner": "Bandit",
+      "message": "Bandit runs while errexit is off (the shell \"bash {0}\" runs without -e) and is not the last command, so a failing scan does not fail the job",
+      "fix": "remove \"set +e\", or capture the status with rc=$? and exit with it",
+      "suppressed": false,
+      "fingerprint": "2872a3b6af9246b97d746d6775ca8c7f"
+    },
+    {
+      "ruleId": "GL002",
+      "title": "errexit disabled before a scanner",
+      "severity": "high",
+      "confidence": "high",
+      "file": "testdata/github/.github/workflows/errexit.yml",
+      "line": 20,
+      "column": 11,
+      "job": "scan",
+      "step": "set +o errexit",
+      "scanner": "Checkov",
+      "message": "Checkov runs while errexit is off (\"set +o errexit\" on line 19 disables it) and is not the last command, so a failing scan does not fail the job",
+      "fix": "remove \"set +e\", or capture the status with rc=$? and exit with it",
+      "suppressed": false,
+      "fingerprint": "9569ec6d6a8ba8112a8f58fe2639c89f"
+    },
+    {
+      "ruleId": "GL006",
+      "title": "Neutering flag on the scanner command line",
+      "severity": "high",
+      "confidence": "high",
+      "file": "testdata/github/.github/workflows/expressions.yml",
+      "line": 10,
+      "column": 69,
+      "job": "scan",
+      "step": "Exit code from env expression",
+      "scanner": "Trivy",
+      "message": "Trivy is run with \"--exit-code 0\", which keeps the exit code at 0 when vulnerabilities are found",
+      "fix": "remove the flag so the scanner exits non-zero on findings",
+      "suppressed": false,
+      "fingerprint": "e7c49c5047d945a0e17a5aa94ce10994"
+    },
+    {
+      "ruleId": "GL006",
+      "title": "Neutering flag on the scanner command line",
+      "severity": "high",
+      "confidence": "high",
+      "file": "testdata/github/.github/workflows/expressions.yml",
+      "line": 12,
+      "column": 32,
+      "job": "scan",
+      "step": "Exit code from shell variable",
+      "scanner": "Trivy",
+      "message": "Trivy is run with \"--exit-code 0\", which keeps the exit code at 0 when vulnerabilities are found",
+      "fix": "remove the flag so the scanner exits non-zero on findings",
+      "suppressed": false,
+      "fingerprint": "9b64c697e4ef4a8d6d9eaa2e520a2401"
+    },
+    {
+      "ruleId": "GL001",
+      "title": "Scanner failure swallowed by the shell",
+      "severity": "high",
+      "confidence": "medium",
+      "file": "testdata/github/.github/workflows/fallback.yml",
+      "line": 10,
+      "column": 11,
+      "job": "scan",
+      "step": "Script the shell parser rejects",
+      "scanner": "Trivy",
+      "message": "Trivy failure is swallowed by `|| true`",
+      "fix": "remove the \"|| true\" (or equivalent) so a failing scan fails the job",
+      "suppressed": false,
+      "fingerprint": "f822413d7cbb81ce8ad218db5563153a"
+    },
+    {
+      "ruleId": "GL006",
+      "title": "Neutering flag on the scanner command line",
+      "severity": "high",
+      "confidence": "high",
+      "file": "testdata/github/.github/workflows/flags.yml",
+      "line": 10,
+      "column": 38,
+      "job": "cli",
+      "step": "Bandit exit zero",
+      "scanner": "Bandit",
+      "message": "Bandit is run with \"--exit-zero\", which exits 0 even when issues are found",
+      "fix": "remove the flag so the scanner exits non-zero on findings",
+      "suppressed": false,
+      "fingerprint": "981591f8ea3a1ce3749353e4df4aa0c0"
+    },
+    {
+      "ruleId": "GL006",
+      "title": "Neutering flag on the scanner command line",
+      "severity": "high",
+      "confidence": "high",
+      "file": "testdata/github/.github/workflows/flags.yml",
+      "line": 12,
+      "column": 31,
+      "job": "cli",
+      "step": "Checkov soft fail",
+      "scanner": "Checkov",
+      "message": "Checkov is run with \"--soft-fail\", which runs checks but always exits 0",
+      "fix": "remove the flag so the scanner exits non-zero on findings",
+      "suppressed": false,
+      "fingerprint": "7e66b44a062f104dc73353e158c598c1"
+    },
+    {
+      "ruleId": "GL006",
+      "title": "Neutering flag on the scanner command line",
+      "severity": "high",
+      "confidence": "high",
+      "file": "testdata/github/.github/workflows/flags.yml",
+      "line": 14,
+      "column": 41,
+      "job": "cli",
+      "step": "Gitleaks exit code zero",
+      "scanner": "Gitleaks",
+      "message": "Gitleaks is run with \"--exit-code=0\", which keeps the exit code at 0 when leaks are found",
+      "fix": "remove the flag so the scanner exits non-zero on findings",
+      "suppressed": false,
+      "fingerprint": "ed9e2a567d074e3ae9cf5495f45a21e5"
+    },
+    {
+      "ruleId": "GL006",
+      "title": "Neutering flag on the scanner command line",
+      "severity": "high",
+      "confidence": "high",
+      "file": "testdata/github/.github/workflows/flags.yml",
+      "line": 16,
+      "column": 24,
+      "job": "cli",
+      "step": "npm audit none",
+      "scanner": "npm audit",
+      "message": "npm audit is run with \"--audit-level=none\", which never exits non-zero",
+      "fix": "remove the flag so the scanner exits non-zero on findings",
+      "suppressed": false,
+      "fingerprint": "8c98634fecbb3e511b88a06d6d462f75"
+    },
+    {
+      "ruleId": "GL006",
+      "title": "Neutering flag on the scanner command line",
+      "severity": "high",
+      "confidence": "high",
+      "file": "testdata/github/.github/workflows/flags.yml",
+      "line": 18,
+      "column": 14,
+      "job": "cli",
+      "step": "Trivy via environment",
+      "scanner": "Trivy",
+      "message": "Trivy runs with TRIVY_EXIT_CODE=0 in its environment, which keeps the exit code at 0 when vulnerabilities are found",
+      "fix": "remove the flag so the scanner exits non-zero on findings",
+      "suppressed": false,
+      "fingerprint": "06605c17307c0ce2b302cd1577f9b043"
+    },
+    {
+      "ruleId": "GL006",
+      "title": "Neutering flag on the scanner command line",
+      "severity": "high",
+      "confidence": "high",
+      "file": "testdata/github/.github/workflows/flags.yml",
+      "line": 20,
+      "column": 69,
+      "job": "cli",
+      "step": "Trivy in docker",
+      "scanner": "Trivy",
+      "message": "Trivy is run with \"--exit-code 0\", which keeps the exit code at 0 when vulnerabilities are found",
+      "fix": "remove the flag so the scanner exits non-zero on findings",
+      "suppressed": false,
+      "fingerprint": "99bc14ab54105ed94856808923d3f517"
+    },
+    {
+      "ruleId": "GL006",
+      "title": "Neutering flag on the scanner command line",
+      "severity": "high",
+      "confidence": "high",
+      "file": "testdata/github/.github/workflows/flags.yml",
+      "line": 22,
+      "column": 22,
+      "job": "cli",
+      "step": "tfsec short flag",
+      "scanner": "tfsec",
+      "message": "tfsec is run with \"-s\", which runs checks but suppresses the error exit code",
+      "fix": "remove the flag so the scanner exits non-zero on findings",
+      "suppressed": false,
+      "fingerprint": "7462545df22c77977136ef593a419f91"
+    },
+    {
+      "ruleId": "GL006",
+      "title": "Neutering flag on the scanner command line",
+      "severity": "high",
+      "confidence": "high",
+      "file": "testdata/github/.github/workflows/flags.yml",
+      "line": 24,
+      "column": 20,
+      "job": "cli",
+      "step": "gosec no-fail",
+      "scanner": "gosec",
+      "message": "gosec is run with \"-no-fail\", which exits 0 even when issues are found",
+      "fix": "remove the flag so the scanner exits non-zero on findings",
+      "suppressed": false,
+      "fingerprint": "bf756c51305f523726d3b8edcc0f1496"
+    },
+    {
+      "ruleId": "GL006",
+      "title": "Neutering flag on the scanner command line",
+      "severity": "high",
+      "confidence": "high",
+      "file": "testdata/github/.github/workflows/flags.yml",
+      "line": 28,
+      "column": 11,
+      "job": "cli",
+      "step": "Container action",
+      "scanner": "tfsec",
+      "message": "tfsec is run with \"--soft-fail\", which runs checks but suppresses the error exit code",
+      "fix": "remove the flag so the scanner exits non-zero on findings",
+      "suppressed": false,
+      "fingerprint": "3ffde5d92c886bccdd2c579adc7901f4"
+    },
+    {
+      "ruleId": "GL003",
+      "title": "Scanner piped without pipefail",
+      "severity": "medium",
+      "confidence": "high",
+      "file": "testdata/github/.github/workflows/pipefail.yml",
+      "line": 8,
+      "column": 14,
+      "job": "scan",
+      "step": "Default shell pipes into tee",
+      "scanner": "Trivy",
+      "message": "Trivy output is piped into \"tee\" and the shell does not set pipefail, so the step's status is that of \"tee\"",
+      "fix": "set \"shell: bash\" on the step (it adds -o pipefail) or add \"set -o pipefail\" before the pipeline",
+      "suppressed": false,
+      "fingerprint": "9ad8061142126b50a5493e11ab179a02"
+    },
+    {
+      "ruleId": "GL003",
+      "title": "Scanner piped without pipefail",
+      "severity": "medium",
+      "confidence": "high",
+      "file": "testdata/github/.github/workflows/pipefail.yml",
+      "line": 11,
+      "column": 14,
+      "job": "scan",
+      "step": "sh pipes into tee",
+      "scanner": "Gitleaks",
+      "message": "Gitleaks output is piped into \"tee\" and the shell does not set pipefail, so the step's status is that of \"tee\"",
+      "fix": "set \"shell: bash\" on the step (it adds -o pipefail) or add \"set -o pipefail\" before the pipeline",
+      "suppressed": false,
+      "fingerprint": "50d559d29b46bbea01461d7bd82f94cc"
+    },
+    {
+      "ruleId": "GL003",
+      "title": "Scanner piped without pipefail",
+      "severity": "medium",
+      "confidence": "high",
+      "file": "testdata/github/.github/workflows/pipefail.yml",
+      "line": 15,
+      "column": 11,
+      "job": "scan",
+      "step": "Custom shell without pipefail",
+      "scanner": "Semgrep",
+      "message": "Semgrep output is piped into \"jq\" and the shell does not set pipefail, so the step's status is that of \"jq\"",
+      "fix": "set \"shell: bash\" on the step (it adds -o pipefail) or add \"set -o pipefail\" before the pipeline",
+      "suppressed": false,
+      "fingerprint": "5ea2f75a5b2bd9cee3dff7d8414ba339"
+    },
+    {
+      "ruleId": "GL006",
+      "title": "Neutering flag on the scanner command line",
+      "severity": "low",
+      "confidence": "high",
+      "file": "testdata/github/.github/workflows/redirect-report.yml",
+      "line": 9,
+      "column": 19,
+      "job": "integration",
+      "step": "Scan a deliberately vulnerable fixture and check the report",
+      "scanner": "Checkov",
+      "message": "Checkov is run with \"-s\", which runs checks but always exits 0",
+      "fix": "remove the flag so the scanner exits non-zero on findings",
+      "notes": [
+        "a later command at testdata/github/.github/workflows/redirect-report.yml:10 appears to fail the build based on checkov_report.txt"
+      ],
+      "suppressed": false,
+      "fingerprint": "fb99807525124a9a9f8d48d8f2c2a1d5"
+    },
+    {
+      "ruleId": "GL006",
+      "title": "Neutering flag on the scanner command line",
+      "severity": "high",
+      "confidence": "high",
+      "file": "testdata/github/.github/workflows/redirect-report.yml",
+      "line": 13,
+      "column": 22,
+      "job": "integration",
+      "step": "Report kept but never checked",
+      "scanner": "Checkov",
+      "message": "Checkov is run with \"-s\", which runs checks but always exits 0",
+      "fix": "remove the flag so the scanner exits non-zero on findings",
+      "suppressed": false,
+      "fingerprint": "48e3f045faa993133b4ad04af6c4a68e"
+    },
+    {
+      "ruleId": "GL006",
+      "title": "Neutering flag on the scanner command line",
+      "severity": "low",
+      "confidence": "high",
+      "file": "testdata/github/.github/workflows/redirect-report.yml",
+      "line": 16,
+      "column": 30,
+      "job": "integration",
+      "step": "Tee into a report that is gated later",
+      "scanner": "Gitleaks",
+      "message": "Gitleaks is run with \"--exit-code 0\", which keeps the exit code at 0 when leaks are found",
+      "fix": "remove the flag so the scanner exits non-zero on findings",
+      "notes": [
+        "a later command at testdata/github/.github/workflows/redirect-report.yml:19 appears to fail the build based on leaks.txt"
+      ],
+      "suppressed": false,
+      "fingerprint": "8c956ee7ff4e7d2f62721e33883d5607"
+    },
+    {
+      "ruleId": "GL008",
+      "title": "Neutering input on a scanner action",
+      "severity": "low",
+      "confidence": "high",
+      "file": "testdata/github/.github/workflows/report-only.yml",
+      "line": 13,
+      "column": 11,
+      "job": "trivy",
+      "step": "Trivy SARIF for code scanning",
+      "scanner": "Trivy",
+      "message": "aquasecurity/trivy-action input \"exit-code: 0\" makes the action exit 0 when vulnerabilities are found",
+      "fix": "remove the input (or set it to its gating value) so findings fail the step",
+      "notes": [
+        "Trivy also runs in gating mode at testdata/github/.github/workflows/report-only.yml:18, so this run looks report-only"
+      ],
+      "suppressed": false,
+      "fingerprint": "72eef2dedd845c25bd0ecec4b4aca8e1"
+    },
+    {
+      "ruleId": "GL007",
+      "title": "Scanner does not gate by default",
+      "severity": "low",
+      "confidence": "high",
+      "file": "testdata/github/.github/workflows/report-only.yml",
+      "line": 27,
+      "column": 14,
+      "job": "semgrep",
+      "step": "Semgrep SARIF",
+      "scanner": "Semgrep",
+      "message": "Semgrep exits 0 when it finds issues and no gating option is set",
+      "fix": "add --error so findings fail the build",
+      "notes": [
+        "results are uploaded to code scanning, which blocks merges only when code scanning merge protection is configured"
+      ],
+      "suppressed": false,
+      "fingerprint": "dac27532c18a633111ab44780430a535"
+    },
+    {
+      "ruleId": "GL006",
+      "title": "Neutering flag on the scanner command line",
+      "severity": "low",
+      "confidence": "high",
+      "file": "testdata/github/.github/workflows/report-only.yml",
+      "line": 35,
+      "column": 30,
+      "job": "gitleaks",
+      "step": "Report",
+      "scanner": "Gitleaks",
+      "message": "Gitleaks is run with \"--exit-code 0\", which keeps the exit code at 0 when leaks are found",
+      "fix": "remove the flag so the scanner exits non-zero on findings",
+      "notes": [
+        "a later command at testdata/github/.github/workflows/report-only.yml:38 appears to fail the build based on leaks.json"
+      ],
+      "suppressed": false,
+      "fingerprint": "ee9a99fcffc900c37f132ba62fa44830"
+    },
+    {
+      "ruleId": "GL001",
+      "title": "Scanner failure swallowed by the shell",
+      "severity": "high",
+      "confidence": "high",
+      "file": "testdata/github/.github/workflows/reusable-scan.yml",
+      "line": 13,
+      "column": 11,
+      "job": "scan",
+      "step": "Scan ${{ matrix.target }}",
+      "scanner": "Grype",
+      "message": "Grype failure is swallowed by `|| true`",
+      "fix": "remove the \"|| true\" (or equivalent) so a failing scan fails the job",
+      "suppressed": false,
+      "fingerprint": "530d97bca8b29d1446892c60092c8e0c"
+    },
+    {
+      "ruleId": "GL004",
+      "title": "continue-on-error on a scanner step or job",
+      "severity": "high",
+      "confidence": "high",
+      "file": "testdata/github/.github/workflows/suppressions.yml",
+      "line": 9,
+      "column": 9,
+      "job": "scan",
+      "step": "Suppressed with a reason",
+      "scanner": "Semgrep",
+      "message": "Semgrep runs in a step with continue-on-error: true, so a failing scan does not fail the workflow",
+      "fix": "remove continue-on-error, or move non-blocking experiments to a separate job",
+      "suppressed": true,
+      "suppressionReason": "nightly report only; the PR gate lives in ci.yml",
+      "fingerprint": "8ffae34c2951e7bbbffdcaee2cc18657"
+    },
+    {
+      "ruleId": "GL001",
+      "title": "Scanner failure swallowed by the shell",
+      "severity": "high",
+      "confidence": "high",
+      "file": "testdata/github/.github/workflows/suppressions.yml",
+      "line": 12,
+      "column": 14,
+      "job": "scan",
+      "step": "Same-line suppression",
+      "scanner": "Trivy",
+      "message": "Trivy failure is swallowed by `|| true`",
+      "fix": "remove the \"|| true\" (or equivalent) so a failing scan fails the job",
+      "suppressed": true,
+      "suppressionReason": "tracked in SEC-1234 until the base image is fixed",
+      "fingerprint": "a7ab1eea019259722024e49e606be5fc"
+    },
+    {
+      "ruleId": "GL006",
+      "title": "Neutering flag on the scanner command line",
+      "severity": "high",
+      "confidence": "high",
+      "file": "testdata/github/.github/workflows/suppressions.yml",
+      "line": 14,
+      "column": 28,
+      "job": "scan",
+      "step": "Missing reason",
+      "scanner": "Bandit",
+      "message": "Bandit is run with \"--exit-zero\", which exits 0 even when issues are found",
+      "fix": "remove the flag so the scanner exits non-zero on findings",
+      "suppressed": false,
+      "fingerprint": "0440d7fa0f11a2ef994f513e16525382"
+    },
+    {
+      "ruleId": "GL010",
+      "title": "Suppression without a reason",
+      "severity": "low",
+      "confidence": "high",
+      "file": "testdata/github/.github/workflows/suppressions.yml",
+      "line": 14,
+      "column": 40,
+      "message": "suppression has no reason, so it does not suppress anything",
+      "fix": "add a reason of at least 10 characters after the rule IDs",
+      "suppressed": false,
+      "fingerprint": "e0a2d6dc57e93465853f961cb09e8513"
+    },
+    {
+      "ruleId": "GL010",
+      "title": "Suppression without a reason",
+      "severity": "low",
+      "confidence": "high",
+      "file": "testdata/github/.github/workflows/suppressions.yml",
+      "line": 16,
+      "column": 9,
+      "message": "suppression has a reason shorter than 10 characters, so it does not suppress anything",
+      "fix": "add a reason of at least 10 characters after the rule IDs",
+      "suppressed": false,
+      "fingerprint": "3b0070456be0085b788780935416b7dc"
+    },
+    {
+      "ruleId": "GL004",
+      "title": "continue-on-error on a scanner step or job",
+      "severity": "high",
+      "confidence": "high",
+      "file": "testdata/github/.github/workflows/suppressions.yml",
+      "line": 17,
+      "column": 9,
+      "job": "scan",
+      "step": "Short reason",
+      "scanner": "Gitleaks",
+      "message": "Gitleaks runs in a step with continue-on-error: true, so a failing scan does not fail the workflow",
+      "fix": "remove continue-on-error, or move non-blocking experiments to a separate job",
+      "suppressed": false,
+      "fingerprint": "5591a4024585f7e25cbf7325b76992a2"
+    },
+    {
+      "ruleId": "GL010",
+      "title": "Suppression without a reason",
+      "severity": "low",
+      "confidence": "high",
+      "file": "testdata/github/.github/workflows/suppressions.yml",
+      "line": 20,
+      "column": 27,
+      "message": "suppression names unknown rule GL999",
+      "fix": "add a reason of at least 10 characters after the rule IDs",
+      "suppressed": false,
+      "fingerprint": "2231be787612362223c40a3336a1ff86"
+    },
+    {
+      "ruleId": "GL001",
+      "title": "Scanner failure swallowed by the shell",
+      "severity": "high",
+      "confidence": "high",
+      "file": "testdata/github/.github/workflows/swallow.yml",
+      "line": 9,
+      "column": 14,
+      "job": "scan",
+      "step": "Trivy or true",
+      "scanner": "Trivy",
+      "message": "Trivy failure is swallowed by `|| true`",
+      "fix": "remove the \"|| true\" (or equivalent) so a failing scan fails the job",
+      "suppressed": false,
+      "fingerprint": "2f118c961804d524b148b20d6bce5c4d"
+    },
+    {
+      "ruleId": "GL001",
+      "title": "Scanner failure swallowed by the shell",
+      "severity": "high",
+      "confidence": "high",
+      "file": "testdata/github/.github/workflows/swallow.yml",
+      "line": 12,
+      "column": 11,
+      "job": "scan",
+      "step": "Gitleaks or echo",
+      "scanner": "Gitleaks",
+      "message": "Gitleaks failure is swallowed by `|| echo \"leaks found, continuing\"`",
+      "fix": "remove the \"|| true\" (or equivalent) so a failing scan fails the job",
+      "suppressed": false,
+      "fingerprint": "c7720404e9bfba6d62babdf4e783ef63"
+    },
+    {
+      "ruleId": "GL001",
+      "title": "Scanner failure swallowed by the shell",
+      "severity": "high",
+      "confidence": "high",
+      "file": "testdata/github/.github/workflows/swallow.yml",
+      "line": 14,
+      "column": 17,
+      "job": "scan",
+      "step": "Negated semgrep",
+      "scanner": "Semgrep",
+      "message": "Semgrep exit status is inverted with \"!\", which also exempts it from errexit",
+      "fix": "remove the \"!\" in front of the scanner",
+      "suppressed": false,
+      "fingerprint": "a6b92b9fa83b375804f3a8a3c0b12d76"
+    },
+    {
+      "ruleId": "GL001",
+      "title": "Scanner failure swallowed by the shell",
+      "severity": "high",
+      "confidence": "high",
+      "file": "testdata/github/.github/workflows/swallow.yml",
+      "line": 17,
+      "column": 11,
+      "job": "scan",
+      "step": "And list in the middle",
+      "scanner": "Bandit",
+      "message": "Bandit is on the left of `&& echo \"bandit passed\"` in the middle of the script; bash exempts it from errexit, so a failing scan does not stop the job",
+      "fix": "run the scanner as its own command, or append \"|| exit 1\" to the list",
+      "suppressed": false,
+      "fingerprint": "deb8e7843af3468644da0f02ed6ea0f6"
+    },
+    {
+      "ruleId": "GL001",
+      "title": "Scanner failure swallowed by the shell",
+      "severity": "high",
+      "confidence": "high",
+      "file": "testdata/github/.github/workflows/swallow.yml",
+      "line": 21,
+      "column": 16,
+      "job": "scan",
+      "step": "If without failing branch",
+      "scanner": "Checkov",
+      "message": "Checkov runs as an if/while condition and no branch exits with an error",
+      "fix": "add \"exit 1\" to the branch that handles a failed scan",
+      "suppressed": false,
+      "fingerprint": "f82ea19c0224e5b8b8596face2db1163"
+    },
+    {
+      "ruleId": "GL001",
+      "title": "Scanner failure swallowed by the shell",
+      "severity": "high",
+      "confidence": "high",
+      "file": "testdata/github/.github/workflows/swallow.yml",
+      "line": 26,
+      "column": 19,
+      "job": "scan",
+      "step": "Command substitution",
+      "scanner": "npm audit",
+      "message": "npm audit runs inside a command substitution whose status is discarded by `echo`",
+      "fix": "run the scanner directly and capture its output with --output instead of $(...)",
+      "suppressed": false,
+      "fingerprint": "6ed15c075b392d75c8c3e445fa64ff30"
+    },
+    {
+      "ruleId": "GL001",
+      "title": "Scanner failure swallowed by the shell",
+      "severity": "high",
+      "confidence": "high",
+      "file": "testdata/github/.github/workflows/swallow.yml",
+      "line": 30,
+      "column": 11,
+      "job": "scan",
+      "step": "Background",
+      "scanner": "Snyk",
+      "message": "Snyk runs in the background with \"&\", so its exit status is never checked",
+      "fix": "run the scanner in the foreground, or \"wait\" for it and check its status",
+      "suppressed": false,
+      "fingerprint": "af489e26978337ec99ad61f5dd6e2dd5"
+    },
+    {
+      "ruleId": "GL001",
+      "title": "Scanner failure swallowed by the shell",
+      "severity": "high",
+      "confidence": "high",
+      "file": "testdata/github/.github/workflows/swallow.yml",
+      "line": 33,
+      "column": 14,
+      "job": "scan",
+      "step": "Exit zero",
+      "scanner": "tfsec",
+      "message": "tfsec failure is swallowed by `|| exit 0`",
+      "fix": "remove the \"|| true\" (or equivalent) so a failing scan fails the job",
+      "suppressed": false,
+      "fingerprint": "e856cd3d1ce4ce83100baa0d132e7eff"
+    },
+    {
+      "ruleId": "GL006",
+      "title": "Neutering flag on the scanner command line",
+      "severity": "high",
+      "confidence": "medium",
+      "file": "testdata/github/.github/workflows/windows.yml",
+      "line": 8,
+      "column": 23,
+      "job": "scan",
+      "step": "Trivy in pwsh",
+      "scanner": "Trivy",
+      "message": "Trivy is run with \"--exit-code 0\", which keeps the exit code at 0 when vulnerabilities are found",
+      "fix": "remove the flag so the scanner exits non-zero on findings",
+      "suppressed": false,
+      "fingerprint": "7837c4c7b417f915bef3e554d1fb6d5c"
+    },
+    {
+      "ruleId": "GL001",
+      "title": "Scanner failure swallowed by the shell",
+      "severity": "high",
+      "confidence": "medium",
+      "file": "testdata/github/.github/workflows/windows.yml",
+      "line": 10,
+      "column": 14,
+      "job": "scan",
+      "step": "Bandit in pwsh swallowed",
+      "scanner": "Bandit",
+      "message": "Bandit failure is swallowed by `|| Write-Host \"bandit failed\"`",
+      "fix": "remove the \"|| true\" (or equivalent) so a failing scan fails the job",
+      "suppressed": false,
+      "fingerprint": "56771d995a4dfc891668632942a72184"
+    }
+  ],
+  "coverage": [
+    {
+      "file": "testdata/github/.github/actions/scan/action.yml",
+      "platform": "github",
+      "scanners": [
+        {
+          "scanner": "Bandit",
+          "job": "Security scan",
+          "step": "Bandit",
+          "line": 8,
+          "status": "neutered",
+          "rules": [
+            "GL006"
+          ]
+        },
+        {
+          "scanner": "pip-audit",
+          "job": "Security scan",
+          "step": "pip-audit",
+          "line": 12,
+          "status": "neutered",
+          "rules": [
+            "GL001"
+          ]
+        }
+      ]
+    },
+    {
+      "file": "testdata/github/.github/workflows/actions.yml",
+      "platform": "github",
+      "scanners": [
+        {
+          "scanner": "Trivy",
+          "job": "neutered",
+          "step": "aquasecurity/trivy-action@0.28.0",
+          "line": 7,
+          "status": "neutered",
+          "rules": [
+            "GL008"
+          ]
+        },
+        {
+          "scanner": "Grype",
+          "job": "neutered",
+          "step": "anchore/scan-action@v6",
+          "line": 11,
+          "status": "neutered",
+          "rules": [
+            "GL008"
+          ]
+        },
+        {
+          "scanner": "Checkov",
+          "job": "neutered",
+          "step": "bridgecrewio/checkov-action@v12",
+          "line": 15,
+          "status": "neutered",
+          "rules": [
+            "GL008"
+          ]
+        },
+        {
+          "scanner": "pip-audit",
+          "job": "neutered",
+          "step": "pypa/gh-action-pip-audit@v1.1.0",
+          "line": 19,
+          "status": "neutered",
+          "rules": [
+            "GL008"
+          ]
+        },
+        {
+          "scanner": "gosec",
+          "job": "neutered",
+          "step": "securego/gosec@v2.22.0",
+          "line": 23,
+          "status": "neutered",
+          "rules": [
+            "GL008"
+          ]
+        },
+        {
+          "scanner": "tfsec",
+          "job": "neutered",
+          "step": "aquasecurity/tfsec-action@v1.0.3",
+          "line": 26,
+          "status": "neutered",
+          "rules": [
+            "GL008"
+          ]
+        },
+        {
+          "scanner": "Snyk",
+          "job": "neutered",
+          "step": "snyk/actions/node@master",
+          "line": 29,
+          "status": "non-gating",
+          "rules": [
+            "GL007"
+          ],
+          "note": "snyk monitor uploads a snapshot and never fails on vulnerabilities"
+        },
+        {
+          "scanner": "Grype",
+          "job": "gating",
+          "step": "anchore/scan-action@v6",
+          "line": 35,
+          "status": "gating"
+        },
+        {
+          "scanner": "Gitleaks",
+          "job": "gating",
+          "step": "gitleaks/gitleaks-action@v2",
+          "line": 38,
+          "status": "gating"
+        },
+        {
+          "scanner": "Checkov",
+          "job": "gating",
+          "step": "bridgecrewio/checkov-action@v12",
+          "line": 39,
+          "status": "gating"
+        },
+        {
+          "scanner": "Snyk",
+          "job": "gating",
+          "step": "snyk/actions/python@master",
+          "line": 43,
+          "status": "gating"
+        },
+        {
+          "scanner": "gosec",
+          "job": "gating",
+          "step": "securego/gosec@v2.22.0",
+          "line": 46,
+          "status": "gating"
+        },
+        {
+          "scanner": "TruffleHog",
+          "job": "gating",
+          "step": "trufflesecurity/trufflehog@v3",
+          "line": 49,
+          "status": "gating"
+        },
+        {
+          "scanner": "Bandit",
+          "job": "gating",
+          "step": "PyCQA/bandit-action@v1",
+          "line": 50,
+          "status": "non-gating",
+          "note": "the action always exits 0 and uploads SARIF to code scanning; gate through code scanning merge protection"
+        }
+      ]
+    },
+    {
+      "file": "testdata/github/.github/workflows/clean.yml",
+      "platform": "github",
+      "scanners": [
+        {
+          "scanner": "Gitleaks",
+          "job": "security",
+          "step": "Secrets",
+          "line": 11,
+          "status": "gating"
+        },
+        {
+          "scanner": "npm audit",
+          "job": "security",
+          "step": "Dependencies",
+          "line": 15,
+          "status": "gating"
+        },
+        {
+          "scanner": "Trivy",
+          "job": "security",
+          "step": "Container",
+          "line": 17,
+          "status": "gating"
+        },
+        {
+          "scanner": "Checkov",
+          "job": "security",
+          "step": "IaC",
+          "line": 19,
+          "status": "gating"
+        }
+      ]
+    },
+    {
+      "file": "testdata/github/.github/workflows/continue-on-error.yml",
+      "platform": "github",
+      "scanners": [
+        {
+          "scanner": "Semgrep",
+          "job": "step-level",
+          "step": "Semgrep",
+          "line": 8,
+          "status": "neutered",
+          "rules": [
+            "GL004"
+          ]
+        },
+        {
+          "scanner": "Gitleaks",
+          "job": "step-level",
+          "step": "Gitleaks",
+          "line": 11,
+          "status": "neutered",
+          "rules": [
+            "GL004"
+          ]
+        },
+        {
+          "scanner": "Bandit",
+          "job": "step-level",
+          "step": "Explicitly false",
+          "line": 17,
+          "status": "gating"
+        },
+        {
+          "scanner": "Checkov",
+          "job": "job-level",
+          "step": "Checkov",
+          "line": 24,
+          "status": "neutered",
+          "rules": [
+            "GL004"
+          ]
+        }
+      ]
+    },
+    {
+      "file": "testdata/github/.github/workflows/crlf.yml",
+      "platform": "github",
+      "scanners": [
+        {
+          "scanner": "Bandit",
+          "job": "scan",
+          "step": "CRLF line endings",
+          "line": 10,
+          "status": "neutered",
+          "rules": [
+            "GL001"
+          ]
+        }
+      ]
+    },
+    {
+      "file": "testdata/github/.github/workflows/defaults.yml",
+      "platform": "github",
+      "scanners": [
+        {
+          "scanner": "Trivy",
+          "job": "non-gating",
+          "step": "Trivy without exit code",
+          "line": 8,
+          "status": "non-gating",
+          "rules": [
+            "GL007"
+          ],
+          "note": "Trivy exits 0 when it finds vulnerabilities unless --exit-code is set"
+        },
+        {
+          "scanner": "Grype",
+          "job": "non-gating",
+          "step": "Grype without fail-on",
+          "line": 10,
+          "status": "non-gating",
+          "rules": [
+            "GL007"
+          ],
+          "note": "Grype exits 0 when it finds vulnerabilities unless --fail-on is set"
+        },
+        {
+          "scanner": "Semgrep",
+          "job": "non-gating",
+          "step": "Semgrep scan without error",
+          "line": 12,
+          "status": "non-gating",
+          "rules": [
+            "GL007"
+          ],
+          "note": "semgrep scan exits 0 on findings unless --error is set"
+        },
+        {
+          "scanner": "TruffleHog",
+          "job": "non-gating",
+          "step": "TruffleHog without fail",
+          "line": 14,
+          "status": "non-gating",
+          "rules": [
+            "GL007"
+          ],
+          "note": "TruffleHog exits 0 when it finds secrets unless --fail is set"
+        },
+        {
+          "scanner": "Trivy",
+          "job": "non-gating",
+          "step": "Trivy action without exit-code",
+          "line": 16,
+          "status": "non-gating",
+          "rules": [
+            "GL007"
+          ],
+          "note": "trivy-action exits 0 on findings unless exit-code is set to a non-zero value"
+        },
+        {
+          "scanner": "Snyk",
+          "job": "non-gating",
+          "step": "Snyk monitor",
+          "line": 20,
+          "status": "non-gating",
+          "rules": [
+            "GL007"
+          ],
+          "note": "snyk monitor uploads a snapshot and never fails on vulnerabilities"
+        },
+        {
+          "scanner": "Trivy",
+          "job": "gating",
+          "step": "run: trivy image --exit-code 1 myapp:latest",
+          "line": 24,
+          "status": "gating"
+        },
+        {
+          "scanner": "Grype",
+          "job": "gating",
+          "step": "run: grype dir:. --fail-on high",
+          "line": 25,
+          "status": "gating"
+        },
+        {
+          "scanner": "Semgrep",
+          "job": "gating",
+          "step": "run: semgrep scan --config auto --error .",
+          "line": 26,
+          "status": "gating"
+        },
+        {
+          "scanner": "Semgrep",
+          "job": "gating",
+          "step": "run: semgrep ci",
+          "line": 27,
+          "status": "gating"
+        },
+        {
+          "scanner": "TruffleHog",
+          "job": "gating",
+          "step": "run: trufflehog git file://. --fail",
+          "line": 28,
+          "status": "gating"
+        },
+        {
+          "scanner": "Snyk",
+          "job": "gating",
+          "step": "run: snyk test --severity-threshold=high",
+          "line": 29,
+          "status": "gating"
+        },
+        {
+          "scanner": "Trivy",
+          "job": "gating",
+          "step": "Exit code from an input",
+          "line": 31,
+          "status": "unknown",
+          "note": "gating depends on a value gatelint cannot resolve: --exit-code ${{ inputs.trivy-exit-code }}"
+        },
+        {
+          "scanner": "Trivy",
+          "job": "gating",
+          "step": "Trivy action with exit-code",
+          "line": 33,
+          "status": "gating"
+        },
+        {
+          "scanner": "CodeQL",
+          "job": "gating",
+          "step": "github/codeql-action/analyze@v3",
+          "line": 38,
+          "status": "non-gating",
+          "note": "CodeQL does not fail builds on alerts; results gate through code scanning merge protection"
+        }
+      ]
+    },
+    {
+      "file": "testdata/github/.github/workflows/disabled.yml",
+      "platform": "github",
+      "scanners": [
+        {
+          "scanner": "Semgrep",
+          "job": "scan",
+          "step": "Semgrep turned off",
+          "line": 9,
+          "status": "disabled",
+          "rules": [
+            "GL009"
+          ]
+        },
+        {
+          "scanner": "Gitleaks",
+          "job": "scan",
+          "step": "Gitleaks turned off",
+          "line": 12,
+          "status": "disabled",
+          "rules": [
+            "GL009"
+          ]
+        },
+        {
+          "scanner": "Semgrep",
+          "job": "scan",
+          "step": "Conditional is fine",
+          "line": 15,
+          "status": "gating"
+        },
+        {
+          "scanner": "Trivy",
+          "job": "off",
+          "step": "run: trivy fs --exit-code 1 . || true",
+          "line": 20,
+          "status": "disabled",
+          "rules": [
+            "GL009"
+          ]
+        }
+      ]
+    },
+    {
+      "file": "testdata/github/.github/workflows/errexit.yml",
+      "platform": "github",
+      "scanners": [
+        {
+          "scanner": "Gitleaks",
+          "job": "scan",
+          "step": "set +e before gitleaks",
+          "line": 10,
+          "status": "neutered",
+          "rules": [
+            "GL002"
+          ]
+        },
+        {
+          "scanner": "Bandit",
+          "job": "scan",
+          "step": "Shell without -e",
+          "line": 15,
+          "status": "neutered",
+          "rules": [
+            "GL002"
+          ]
+        },
+        {
+          "scanner": "Checkov",
+          "job": "scan",
+          "step": "set +o errexit",
+          "line": 20,
+          "status": "neutered",
+          "rules": [
+            "GL002"
+          ]
+        },
+        {
+          "scanner": "Gitleaks",
+          "job": "scan",
+          "step": "Status captured",
+          "line": 25,
+          "status": "gating"
+        },
+        {
+          "scanner": "Gitleaks",
+          "job": "scan",
+          "step": "Scanner is the last command",
+          "line": 34,
+          "status": "gating"
+        },
+        {
+          "scanner": "Gitleaks",
+          "job": "scan",
+          "step": "errexit restored",
+          "line": 40,
+          "status": "gating"
+        }
+      ]
+    },
+    {
+      "file": "testdata/github/.github/workflows/expressions.yml",
+      "platform": "github",
+      "scanners": [
+        {
+          "scanner": "Trivy",
+          "job": "scan",
+          "step": "Exit code from env expression",
+          "line": 10,
+          "status": "neutered",
+          "rules": [
+            "GL006"
+          ]
+        },
+        {
+          "scanner": "Trivy",
+          "job": "scan",
+          "step": "Exit code from shell variable",
+          "line": 12,
+          "status": "neutered",
+          "rules": [
+            "GL006"
+          ]
+        }
+      ]
+    },
+    {
+      "file": "testdata/github/.github/workflows/fallback.yml",
+      "platform": "github",
+      "scanners": [
+        {
+          "scanner": "Trivy",
+          "job": "scan",
+          "step": "Script the shell parser rejects",
+          "line": 10,
+          "status": "neutered",
+          "rules": [
+            "GL001"
+          ]
+        }
+      ]
+    },
+    {
+      "file": "testdata/github/.github/workflows/flags.yml",
+      "platform": "github",
+      "scanners": [
+        {
+          "scanner": "Bandit",
+          "job": "cli",
+          "step": "Bandit exit zero",
+          "line": 10,
+          "status": "neutered",
+          "rules": [
+            "GL006"
+          ]
+        },
+        {
+          "scanner": "Checkov",
+          "job": "cli",
+          "step": "Checkov soft fail",
+          "line": 12,
+          "status": "neutered",
+          "rules": [
+            "GL006"
+          ]
+        },
+        {
+          "scanner": "Gitleaks",
+          "job": "cli",
+          "step": "Gitleaks exit code zero",
+          "line": 14,
+          "status": "neutered",
+          "rules": [
+            "GL006"
+          ]
+        },
+        {
+          "scanner": "npm audit",
+          "job": "cli",
+          "step": "npm audit none",
+          "line": 16,
+          "status": "neutered",
+          "rules": [
+            "GL006"
+          ]
+        },
+        {
+          "scanner": "Trivy",
+          "job": "cli",
+          "step": "Trivy via environment",
+          "line": 18,
+          "status": "neutered",
+          "rules": [
+            "GL006"
+          ]
+        },
+        {
+          "scanner": "Trivy",
+          "job": "cli",
+          "step": "Trivy in docker",
+          "line": 20,
+          "status": "neutered",
+          "rules": [
+            "GL006"
+          ]
+        },
+        {
+          "scanner": "tfsec",
+          "job": "cli",
+          "step": "tfsec short flag",
+          "line": 22,
+          "status": "neutered",
+          "rules": [
+            "GL006"
+          ]
+        },
+        {
+          "scanner": "gosec",
+          "job": "cli",
+          "step": "gosec no-fail",
+          "line": 24,
+          "status": "neutered",
+          "rules": [
+            "GL006"
+          ]
+        },
+        {
+          "scanner": "tfsec",
+          "job": "cli",
+          "step": "Container action",
+          "line": 26,
+          "status": "neutered",
+          "rules": [
+            "GL006"
+          ]
+        },
+        {
+          "scanner": "Checkov",
+          "job": "not-neutered",
+          "step": "Soft fail explicitly false",
+          "line": 37,
+          "status": "gating"
+        },
+        {
+          "scanner": "Gitleaks",
+          "job": "not-neutered",
+          "step": "Later flag overrides",
+          "line": 39,
+          "status": "gating"
+        }
+      ]
+    },
+    {
+      "file": "testdata/github/.github/workflows/pipefail.yml",
+      "platform": "github",
+      "scanners": [
+        {
+          "scanner": "Trivy",
+          "job": "scan",
+          "step": "Default shell pipes into tee",
+          "line": 8,
+          "status": "neutered",
+          "rules": [
+            "GL003"
+          ]
+        },
+        {
+          "scanner": "Gitleaks",
+          "job": "scan",
+          "step": "sh pipes into tee",
+          "line": 11,
+          "status": "neutered",
+          "rules": [
+            "GL003"
+          ]
+        },
+        {
+          "scanner": "Semgrep",
+          "job": "scan",
+          "step": "Custom shell without pipefail",
+          "line": 15,
+          "status": "neutered",
+          "rules": [
+            "GL003"
+          ]
+        },
+        {
+          "scanner": "Trivy",
+          "job": "pipefail-ok",
+          "step": "Job default shell bash sets pipefail",
+          "line": 23,
+          "status": "gating"
+        },
+        {
+          "scanner": "Gitleaks",
+          "job": "pipefail-ok",
+          "step": "Explicit pipefail",
+          "line": 28,
+          "status": "gating"
+        },
+        {
+          "scanner": "Bandit",
+          "job": "pipefail-ok",
+          "step": "Scanner last in pipeline",
+          "line": 30,
+          "status": "gating"
+        }
+      ]
+    },
+    {
+      "file": "testdata/github/.github/workflows/redirect-report.yml",
+      "platform": "github",
+      "scanners": [
+        {
+          "scanner": "Checkov",
+          "job": "integration",
+          "step": "Scan a deliberately vulnerable fixture and check the report",
+          "line": 9,
+          "status": "neutered",
+          "rules": [
+            "GL006"
+          ],
+          "note": "a later command at testdata/github/.github/workflows/redirect-report.yml:10 appears to fail the build based on checkov_report.txt"
+        },
+        {
+          "scanner": "Checkov",
+          "job": "integration",
+          "step": "Report kept but never checked",
+          "line": 13,
+          "status": "neutered",
+          "rules": [
+            "GL006"
+          ]
+        },
+        {
+          "scanner": "Gitleaks",
+          "job": "integration",
+          "step": "Tee into a report that is gated later",
+          "line": 16,
+          "status": "neutered",
+          "rules": [
+            "GL006"
+          ],
+          "note": "a later command at testdata/github/.github/workflows/redirect-report.yml:19 appears to fail the build based on leaks.txt"
+        }
+      ]
+    },
+    {
+      "file": "testdata/github/.github/workflows/report-only.yml",
+      "platform": "github",
+      "scanners": [
+        {
+          "scanner": "Trivy",
+          "job": "trivy",
+          "step": "Trivy SARIF for code scanning",
+          "line": 8,
+          "status": "neutered",
+          "rules": [
+            "GL008"
+          ],
+          "note": "Trivy also runs in gating mode at testdata/github/.github/workflows/report-only.yml:18, so this run looks report-only"
+        },
+        {
+          "scanner": "Trivy",
+          "job": "trivy",
+          "step": "Trivy gate",
+          "line": 18,
+          "status": "gating"
+        },
+        {
+          "scanner": "Semgrep",
+          "job": "semgrep",
+          "step": "Semgrep SARIF",
+          "line": 27,
+          "status": "non-gating",
+          "rules": [
+            "GL007"
+          ],
+          "note": "semgrep scan exits 0 on findings unless --error is set"
+        },
+        {
+          "scanner": "Gitleaks",
+          "job": "gitleaks",
+          "step": "Report",
+          "line": 35,
+          "status": "neutered",
+          "rules": [
+            "GL006"
+          ],
+          "note": "a later command at testdata/github/.github/workflows/report-only.yml:38 appears to fail the build based on leaks.json"
+        }
+      ]
+    },
+    {
+      "file": "testdata/github/.github/workflows/reusable-scan.yml",
+      "platform": "github",
+      "scanners": [
+        {
+          "scanner": "Grype",
+          "job": "scan",
+          "step": "Scan ${{ matrix.target }}",
+          "line": 13,
+          "status": "neutered",
+          "rules": [
+            "GL001"
+          ]
+        }
+      ]
+    },
+    {
+      "file": "testdata/github/.github/workflows/suppressions.yml",
+      "platform": "github",
+      "scanners": [
+        {
+          "scanner": "Semgrep",
+          "job": "scan",
+          "step": "Suppressed with a reason",
+          "line": 10,
+          "status": "neutered",
+          "rules": [
+            "GL004"
+          ]
+        },
+        {
+          "scanner": "Trivy",
+          "job": "scan",
+          "step": "Same-line suppression",
+          "line": 12,
+          "status": "neutered",
+          "rules": [
+            "GL001"
+          ]
+        },
+        {
+          "scanner": "Bandit",
+          "job": "scan",
+          "step": "Missing reason",
+          "line": 14,
+          "status": "neutered",
+          "rules": [
+            "GL006"
+          ]
+        },
+        {
+          "scanner": "Gitleaks",
+          "job": "scan",
+          "step": "Short reason",
+          "line": 18,
+          "status": "neutered",
+          "rules": [
+            "GL004"
+          ]
+        },
+        {
+          "scanner": "Checkov",
+          "job": "scan",
+          "step": "Unknown rule",
+          "line": 20,
+          "status": "gating"
+        }
+      ]
+    },
+    {
+      "file": "testdata/github/.github/workflows/swallow.yml",
+      "platform": "github",
+      "scanners": [
+        {
+          "scanner": "Trivy",
+          "job": "scan",
+          "step": "Trivy or true",
+          "line": 9,
+          "status": "neutered",
+          "rules": [
+            "GL001"
+          ]
+        },
+        {
+          "scanner": "Gitleaks",
+          "job": "scan",
+          "step": "Gitleaks or echo",
+          "line": 12,
+          "status": "neutered",
+          "rules": [
+            "GL001"
+          ]
+        },
+        {
+          "scanner": "Semgrep",
+          "job": "scan",
+          "step": "Negated semgrep",
+          "line": 14,
+          "status": "neutered",
+          "rules": [
+            "GL001"
+          ]
+        },
+        {
+          "scanner": "Bandit",
+          "job": "scan",
+          "step": "And list in the middle",
+          "line": 17,
+          "status": "neutered",
+          "rules": [
+            "GL001"
+          ]
+        },
+        {
+          "scanner": "Checkov",
+          "job": "scan",
+          "step": "If without failing branch",
+          "line": 21,
+          "status": "neutered",
+          "rules": [
+            "GL001"
+          ]
+        },
+        {
+          "scanner": "npm audit",
+          "job": "scan",
+          "step": "Command substitution",
+          "line": 26,
+          "status": "neutered",
+          "rules": [
+            "GL001"
+          ]
+        },
+        {
+          "scanner": "Snyk",
+          "job": "scan",
+          "step": "Background",
+          "line": 30,
+          "status": "neutered",
+          "rules": [
+            "GL001"
+          ]
+        },
+        {
+          "scanner": "tfsec",
+          "job": "scan",
+          "step": "Exit zero",
+          "line": 33,
+          "status": "neutered",
+          "rules": [
+            "GL001"
+          ]
+        },
+        {
+          "scanner": "Trivy",
+          "job": "not-scanners",
+          "step": "Scanner failure handled",
+          "line": 44,
+          "status": "gating"
+        },
+        {
+          "scanner": "Gitleaks",
+          "job": "not-scanners",
+          "step": "Scanner failure handled",
+          "line": 45,
+          "status": "gating"
+        },
+        {
+          "scanner": "Grype",
+          "job": "not-scanners",
+          "step": "Scanner failure handled",
+          "line": 49,
+          "status": "gating"
+        },
+        {
+          "scanner": "Semgrep",
+          "job": "not-scanners",
+          "step": "And list at the end gates",
+          "line": 54,
+          "status": "gating"
+        }
+      ]
+    },
+    {
+      "file": "testdata/github/.github/workflows/windows.yml",
+      "platform": "github",
+      "scanners": [
+        {
+          "scanner": "Trivy",
+          "job": "scan",
+          "step": "Trivy in pwsh",
+          "line": 8,
+          "status": "neutered",
+          "rules": [
+            "GL006"
+          ]
+        },
+        {
+          "scanner": "Bandit",
+          "job": "scan",
+          "step": "Bandit in pwsh swallowed",
+          "line": 10,
+          "status": "neutered",
+          "rules": [
+            "GL001"
+          ]
+        }
+      ]
+    }
+  ],
+  "notes": [
+    {
+      "file": "testdata/github/.github/workflows/reusable.yml",
+      "line": 7,
+      "message": "job \"remote-call\" calls the remote reusable workflow example-org/shared-workflows/.github/workflows/scan.yml@v1, which is out of scope"
+    }
+  ],
+  "errors": []
+}

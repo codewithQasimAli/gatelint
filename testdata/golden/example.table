@@ -1,0 +1,17 @@
+SEVERITY  RULE   LOCATION                                            JOB / STEP               MESSAGE
+HIGH      GL001  testdata/example/.github/workflows/security.yml:11  scan / Dependency audit  npm audit failure is swallowed by `|| true`
+          fix: remove the "|| true" (or equivalent) so a failing scan fails the job
+MEDIUM    GL007  testdata/example/.github/workflows/security.yml:14  scan / Container scan    aquasecurity/trivy-action@0.28.0 exits 0 when it finds issues and no gating option is set
+          fix: set exit-code: '1' on the step so findings fail the build
+HIGH      GL004  testdata/example/.github/workflows/security.yml:20  scan / SAST              Semgrep runs in a step with continue-on-error: true, so a failing scan does not fail the workflow
+          fix: remove continue-on-error, or move non-blocking experiments to a separate job
+
+Gate coverage
+  testdata/example/.github/workflows/security.yml
+    npm audit  scan / Dependency audit  line 11    neutered (GL001)
+    Trivy      scan / Container scan    line 14    non-gating (GL007)
+      trivy-action exits 0 on findings unless exit-code is set to a non-zero value
+    Semgrep    scan / SAST              line 19    neutered (GL004)
+    Gitleaks   scan / Secrets           line 23    gating
+
+Summary: 3 findings (2 high, 1 medium, 0 low, 0 info), 0 suppressed; 4 scanners in 1 file: 1 gating, 2 neutered, 1 non-gating

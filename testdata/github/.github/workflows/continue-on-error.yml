@@ -1,0 +1,26 @@
+name: continue-on-error
+on: push
+jobs:
+  step-level:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Semgrep
+        run: semgrep ci
+        continue-on-error: true
+      - name: Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        continue-on-error: ${{ matrix.experimental }}
+      - name: Lint may fail
+        run: npm run lint
+        continue-on-error: true
+      - name: Explicitly false
+        run: bandit -r src
+        continue-on-error: false
+  job-level:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - name: Checkov
+        uses: bridgecrewio/checkov-action@v12
+        with:
+          directory: infra

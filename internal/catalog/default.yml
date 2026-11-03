@@ -1,0 +1,342 @@
+# Built-in scanner catalog. Each entry describes how a scanner is invoked and
+# which flags or action inputs decide whether it fails the build.
+# Sources for every default are listed in docs/DECISIONS.md.
+#
+# Conditions: set (boolean flag present), zero, nonzero, any, true, false.
+scanners:
+  - id: bandit
+    name: Bandit
+    commands: [bandit]
+    python-modules: [bandit]
+    packages: [bandit]
+    images: [ghcr.io/pycqa/bandit/bandit]
+    skip-flags: [--version, --help, -h]
+    output-flags: [-o, --output]
+    modes:
+      - gates-by-default: true
+    settings:
+      - names: [--exit-zero]
+        neuter-when: set
+        description: exits 0 even when issues are found
+    actions:
+      - uses: pycqa/bandit-action
+        info-only: true
+        note: the action always exits 0 and uploads SARIF to code scanning; gate through code scanning merge protection
+
+  - id: trivy
+    name: Trivy
+    commands: [trivy]
+    images: [aquasec/trivy, ghcr.io/aquasecurity/trivy, public.ecr.aws/aquasecurity/trivy]
+    skip-flags: [--version, -v, --help, -h, --download-db-only, --download-java-db-only, --reset, --clear-cache]
+    skip-subcommands: [version, help, plugin, server, clean, module, completion, registry, vex, convert]
+    config-flags: [--config, -c]
+    default-config-files: [trivy.yaml]
+    output-flags: [--output, -o]
+    modes:
+      - gates-by-default: false
+        note: Trivy exits 0 when it finds vulnerabilities unless --exit-code is set
+    settings:
+      - names: [--exit-code]
+        env: TRIVY_EXIT_CODE
+        takes-value: true
+        gate-when: nonzero
+        neuter-when: zero
+        exit-code: true
+        description: keeps the exit code at 0 when vulnerabilities are found
+        example: --exit-code 1
+    actions:
+      - uses: aquasecurity/trivy-action
+        gates-by-default: false
+        honour-env: true
+        inputs:
+          - names: [exit-code]
+            gate-when: nonzero
+            neuter-when: zero
+            exit-code: true
+            description: makes the action exit 0 when vulnerabilities are found
+            example: "exit-code: '1'"
+        config-inputs: [trivy-config]
+        output-inputs: [output]
+        note: trivy-action exits 0 on findings unless exit-code is set to a non-zero value
+
+  - id: grype
+    name: Grype
+    commands: [grype]
+    images: [anchore/grype, ghcr.io/anchore/grype]
+    skip-flags: [--version, --help, -h]
+    skip-subcommands: [version, help, db, completion, config, explain]
+    config-flags: [--config, -c]
+    default-config-files: [.grype.yaml, .grype/config.yaml]
+    output-flags: [--file]
+    fail-exit-codes: [2]
+    modes:
+      - gates-by-default: false
+        note: Grype exits 0 when it finds vulnerabilities unless --fail-on is set
+    settings:
+      - names: [--fail-on, -f]
+        env: GRYPE_FAIL_ON_SEVERITY
+        takes-value: true
+        gate-when: any
+        description: fails with exit code 2 at or above the given severity
+        example: --fail-on high
+    actions:
+      - uses: anchore/scan-action
+        gates-by-default: true
+        inputs:
+          - names: [fail-build]
+            neuter-when: "false"
+            gate-when: "true"
+            description: keeps the step green whatever Grype finds
+        output-inputs: [output-file]
+
+  - id: semgrep
+    name: Semgrep
+    commands: [semgrep]
+    packages: [semgrep]
+    images: [semgrep/semgrep, returntocorp/semgrep]
+    skip-flags: [--version, --help, -h, --dump-ast, --validate, --show-supported-languages]
+    skip-subcommands: [login, logout, publish, show, lsp, install-semgrep-pro, test, mcp]
+    config-flags: []
+    output-flags: [--output, -o, --sarif-output, --json-output]
+    modes:
+      - subcommands: [ci]
+        gates-by-default: true
+        note: semgrep ci fails on blocking findings by default
+      - gates-by-default: false
+        note: semgrep scan exits 0 on findings unless --error is set
+        settings:
+          - names: [--error]
+            gate-when: set
+            description: exits 1 when findings are reported
+            example: --error
+    actions:
+      - uses: returntocorp/semgrep-action
+        gates-by-default: true
+      - uses: semgrep/semgrep-action
+        gates-by-default: true
+
+  - id: gitleaks
+    name: Gitleaks
+    commands: [gitleaks]
+    images: [zricethezav/gitleaks, ghcr.io/gitleaks/gitleaks, ghcr.io/zricethezav/gitleaks]
+    skip-flags: [--version, --help, -h]
+    skip-subcommands: [version, help, completion]
+    output-flags: [--report-path, -r]
+    modes:
+      - gates-by-default: true
+    settings:
+      - names: [--exit-code]
+        takes-value: true
+        neuter-when: zero
+        gate-when: nonzero
+        exit-code: true
+        description: keeps the exit code at 0 when leaks are found
+    actions:
+      - uses: gitleaks/gitleaks-action
+        gates-by-default: true
+      - uses: zricethezav/gitleaks-action
+        gates-by-default: true
+
+  - id: checkov
+    name: Checkov
+    commands: [checkov]
+    python-modules: [checkov]
+    packages: [checkov]
+    images: [bridgecrew/checkov]
+    skip-flags: [--version, -v, --help, -h, --list]
+    output-flags: [--output-file-path]
+    modes:
+      - gates-by-default: true
+    settings:
+      - names: [--soft-fail, -s]
+        neuter-when: set
+        description: runs checks but always exits 0
+    actions:
+      - uses: bridgecrewio/checkov-action
+        gates-by-default: true
+        inputs:
+          - names: [soft_fail]
+            neuter-when: "true"
+            description: makes Checkov exit 0 when checks fail
+        output-inputs: [output_file_path]
+
+  - id: tfsec
+    name: tfsec
+    commands: [tfsec]
+    images: [aquasec/tfsec, aquasec/tfsec-ci, aquasec/tfsec-alpine]
+    skip-flags: [--version, -v, --help, -h, --update]
+    output-flags: [--out, -O]
+    modes:
+      - gates-by-default: true
+    settings:
+      - names: [--soft-fail, -s]
+        neuter-when: set
+        description: runs checks but suppresses the error exit code
+    actions:
+      - uses: aquasecurity/tfsec-action
+        gates-by-default: true
+        inputs:
+          - names: [soft_fail]
+            neuter-when: "true"
+            description: makes tfsec exit 0 when checks fail
+      - uses: aquasecurity/tfsec-sarif-action
+        info-only: true
+        note: the SARIF action produces a report for code scanning and does not fail the build
+
+  - id: npm-audit
+    name: npm audit
+    commands: ["npm audit", "pnpm audit", "yarn audit", "yarn npm audit", "bun audit"]
+    skip-flags: [--help, -h]
+    skip-subcommands: [fix, signatures]
+    modes:
+      - gates-by-default: true
+    settings:
+      - names: [--audit-level]
+        env: npm_config_audit_level
+        takes-value: true
+        neuter-values: [none]
+        description: never exits non-zero
+    actions: []
+
+  - id: pip-audit
+    name: pip-audit
+    commands: [pip-audit]
+    python-modules: [pip_audit]
+    packages: [pip-audit]
+    skip-flags: [--version, --help, -h]
+    output-flags: [--output, -o]
+    modes:
+      - gates-by-default: true
+        note: pip-audit's exit code cannot be suppressed by a flag
+    actions:
+      - uses: pypa/gh-action-pip-audit
+        gates-by-default: true
+        inputs:
+          - names: [internal-be-careful-allow-failure]
+            neuter-when: "true"
+            description: keeps the step green when vulnerabilities are found
+
+  - id: snyk
+    name: Snyk
+    commands: [snyk]
+    packages: [snyk]
+    images: [snyk/snyk, snyk/snyk-cli]
+    skip-flags: [--version, -v, --help, -h]
+    skip-subcommands: [auth, config, help, version, wizard, ignore, policy, woof, apps, log4shell, sbom, describe]
+    output-flags: [--json-file-output, --sarif-file-output]
+    modes:
+      - subcommands: [monitor]
+        never-gates: true
+        note: snyk monitor uploads a snapshot and never fails on vulnerabilities
+      - gates-by-default: true
+    actions:
+      - uses: snyk/actions
+        prefix: true
+        gates-by-default: true
+        args-input: args
+        command-input: command
+        default-command: test
+
+  - id: codeql
+    name: CodeQL
+    commands: ["codeql database analyze"]
+    info-only: true
+    note: CodeQL does not fail builds on alerts; results gate through code scanning merge protection
+    actions:
+      - uses: github/codeql-action/analyze
+        info-only: true
+        note: CodeQL does not fail builds on alerts; results gate through code scanning merge protection
+
+  - id: gosec
+    name: gosec
+    commands: [gosec]
+    images: [securego/gosec, ghcr.io/securego/gosec]
+    skip-flags: [-version, --version, -h, --help]
+    output-flags: [-out, --out]
+    modes:
+      - gates-by-default: true
+    settings:
+      - names: [-no-fail, --no-fail]
+        neuter-when: set
+        description: exits 0 even when issues are found
+    actions:
+      - uses: securego/gosec
+        gates-by-default: true
+        args-input: args
+
+  - id: trufflehog
+    name: TruffleHog
+    commands: [trufflehog]
+    images: [trufflesecurity/trufflehog, ghcr.io/trufflesecurity/trufflehog]
+    skip-flags: [--version, --help, -h]
+    fail-exit-codes: [183]
+    modes:
+      - gates-by-default: false
+        note: TruffleHog exits 0 when it finds secrets unless --fail is set
+    settings:
+      - names: [--fail]
+        gate-when: set
+        description: exits 183 when results are found
+        example: --fail
+    actions:
+      - uses: trufflesecurity/trufflehog
+        gates-by-default: true
+        note: the action passes --fail to TruffleHog
+
+  - id: gatelint
+    name: gatelint
+    commands: [gatelint]
+    skip-flags: [--version, --help, -h]
+    skip-subcommands: [version, rules, help, completion]
+    output-flags: [--output, -o]
+    modes:
+      - gates-by-default: true
+    settings:
+      - names: [--fail-on]
+        takes-value: true
+        neuter-values: [none]
+        description: --fail-on none never exits non-zero
+    actions:
+      - uses: codewithqasimali/gatelint
+        gates-by-default: true
+        inputs:
+          - names: [fail-on]
+            neuter-values: [none]
+            description: fail-on none never fails the step
+
+gitlab-templates:
+  - id: gitlab-sast
+    name: GitLab SAST
+    templates: [Security/SAST.gitlab-ci.yml, Jobs/SAST.gitlab-ci.yml, Jobs/SAST.latest.gitlab-ci.yml, Security/SAST.latest.gitlab-ci.yml]
+    components: [components/sast/sast]
+    disable-variables: [SAST_DISABLED]
+    jobs: [sast, semgrep-sast, gitlab-advanced-sast, brakeman-sast, flawfinder-sast, kubesec-sast, mobsf-android-sast, mobsf-ios-sast, nodejs-scan-sast, phpcs-security-audit-sast, pmd-apex-sast, security-code-scan-sast, sobelow-sast, spotbugs-sast, bandit-sast, eslint-sast, gosec-sast]
+  - id: gitlab-iac
+    name: GitLab IaC scanning
+    templates: [Security/SAST-IaC.gitlab-ci.yml, Jobs/SAST-IaC.gitlab-ci.yml, Security/SAST-IaC.latest.gitlab-ci.yml, Jobs/SAST-IaC.latest.gitlab-ci.yml]
+    disable-variables: [SAST_DISABLED]
+    jobs: [iac-sast, kics-iac-sast]
+  - id: gitlab-secret-detection
+    name: GitLab Secret Detection
+    templates: [Security/Secret-Detection.gitlab-ci.yml, Jobs/Secret-Detection.gitlab-ci.yml, Jobs/Secret-Detection.latest.gitlab-ci.yml]
+    components: [components/secret-detection/secret-detection]
+    disable-variables: [SECRET_DETECTION_DISABLED]
+    jobs: [secret_detection]
+  - id: gitlab-dependency-scanning
+    name: GitLab Dependency Scanning
+    templates: [Security/Dependency-Scanning.gitlab-ci.yml, Jobs/Dependency-Scanning.gitlab-ci.yml, Jobs/Dependency-Scanning.latest.gitlab-ci.yml, Jobs/Dependency-Scanning.v2.gitlab-ci.yml]
+    components: [components/dependency-scanning/dependency-scanning]
+    disable-variables: [DEPENDENCY_SCANNING_DISABLED]
+    jobs: [dependency_scanning, gemnasium-dependency_scanning, gemnasium-maven-dependency_scanning, gemnasium-python-dependency_scanning, dependency-scanning]
+  - id: gitlab-container-scanning
+    name: GitLab Container Scanning
+    templates: [Security/Container-Scanning.gitlab-ci.yml, Jobs/Container-Scanning.gitlab-ci.yml, Jobs/Container-Scanning.latest.gitlab-ci.yml]
+    components: [components/container-scanning/container-scanning]
+    disable-variables: [CONTAINER_SCANNING_DISABLED]
+    jobs: [container_scanning]
+  - id: gitlab-dast
+    name: GitLab DAST
+    templates: [Security/DAST.gitlab-ci.yml, Jobs/DAST.gitlab-ci.yml, Security/DAST.latest.gitlab-ci.yml]
+    components: [components/dast/dast]
+    disable-variables: [DAST_DISABLED]
+    jobs: [dast]

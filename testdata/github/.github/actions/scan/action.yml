@@ -1,0 +1,12 @@
+name: Security scan
+description: Runs the project's security scanners
+runs:
+  using: composite
+  steps:
+    - name: Bandit
+      shell: bash
+      run: bandit -r src --exit-zero
+    - name: pip-audit
+      shell: bash
+      run: |
+        pip-audit -r requirements.txt || echo "pip-audit failed"

@@ -1,0 +1,129 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  gofmt:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+      - name: Check formatting
+        shell: bash
+        run: |
+          unformatted="$(gofmt -l .)"
+          if [ -n "$unformatted" ]; then
+            echo "::error::these files need gofmt:"
+            echo "$unformatted"
+            exit 1
+          fi
+
+  vet:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+      - run: go vet ./...
+
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+      - name: Test with race detector and coverage
+        shell: bash
+        run: go test -race -covermode=atomic -coverprofile=coverage.out ./...
+      - name: Require 80% coverage for internal packages
+        shell: bash
+        run: |
+          go test -covermode=atomic -coverprofile=internal.out ./internal/...
+          total="$(go tool cover -func=internal.out | awk '/^total:/ {sub("%", "", $3); print $3}')"
+          echo "internal coverage: ${total}%"
+          awk -v t="$total" 'BEGIN { exit (t >= 80) ? 0 : 1 }'
+
+  lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+      - uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9.3.0
+        with:
+          version: v2.5.0
+
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+      - name: Build
+        shell: bash
+        run: |
+          go build ./...
+          for target in linux/amd64 linux/arm64 darwin/arm64 windows/amd64; do
+            CGO_ENABLED=0 GOOS="${target%/*}" GOARCH="${target#*/}" go build -o /dev/null ./cmd/gatelint
+          done
+
+  dogfood:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+      - name: Build gatelint
+        run: go build -o gatelint ./cmd/gatelint
+      - name: This repository must pass
+        shell: bash
+        run: |
+          ./gatelint scan .
+          ./gatelint scan --platform gitlab templates/gatelint.gitlab-ci.yml
+      - name: Fixtures must fail with exit code 1
+        shell: bash
+        run: |
+          for dir in testdata/github testdata/gitlab; do
+            set +e
+            ./gatelint scan "$dir" --quiet > /dev/null
+            rc=$?
+            set -e
+            if [ "$rc" -ne 1 ]; then
+              echo "::error::gatelint scan $dir exited with $rc, expected 1"
+              exit 1
+            fi
+          done

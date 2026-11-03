@@ -1,0 +1,267 @@
+SEVERITY  RULE   LOCATION                                                    JOB / STEP                                        MESSAGE
+HIGH      GL006  testdata/github/.github/actions/scan/action.yml:8           Security scan / Bandit                            Bandit is run with "--exit-zero", which exits 0 even when issues are found
+          fix: remove the flag so the scanner exits non-zero on findings
+HIGH      GL001  testdata/github/.github/actions/scan/action.yml:12          Security scan / pip-audit                         pip-audit failure is swallowed by `|| echo "pip-audit failed"`
+          fix: remove the "|| true" (or equivalent) so a failing scan fails the job
+HIGH      GL008  testdata/github/.github/workflows/actions.yml:10            neutered / aquasecurity/trivy-action@0.28.0       aquasecurity/trivy-action input "exit-code: 0" makes the action exit 0 when vulnerabilities are found
+          fix: remove the input (or set it to its gating value) so findings fail the step
+HIGH      GL008  testdata/github/.github/workflows/actions.yml:14            neutered / anchore/scan-action@v6                 anchore/scan-action input "fail-build: false" keeps the step green whatever Grype finds
+          fix: remove the input (or set it to its gating value) so findings fail the step
+HIGH      GL008  testdata/github/.github/workflows/actions.yml:18            neutered / bridgecrewio/checkov-action@v12        bridgecrewio/checkov-action input "soft_fail: true" makes Checkov exit 0 when checks fail
+          fix: remove the input (or set it to its gating value) so findings fail the step
+HIGH      GL008  testdata/github/.github/workflows/actions.yml:22            neutered / pypa/gh-action-pip-audit@v1.1.0        pypa/gh-action-pip-audit input "internal-be-careful-allow-failure: true" keeps the step green when vulnerabilities are found
+          fix: remove the input (or set it to its gating value) so findings fail the step
+HIGH      GL008  testdata/github/.github/workflows/actions.yml:25            neutered / securego/gosec@v2.22.0                 securego/gosec input args passes "-no-fail", which exits 0 even when issues are found
+          fix: remove the input (or set it to its gating value) so findings fail the step
+HIGH      GL008  testdata/github/.github/workflows/actions.yml:28            neutered / aquasecurity/tfsec-action@v1.0.3       aquasecurity/tfsec-action input "soft_fail: true" makes tfsec exit 0 when checks fail
+          fix: remove the input (or set it to its gating value) so findings fail the step
+INFO      GL007  testdata/github/.github/workflows/actions.yml:29            neutered / snyk/actions/node@master               Snyk: snyk monitor uploads a snapshot and never fails on vulnerabilities
+          fix: add a separate command that fails on findings (for Snyk, "snyk test")
+HIGH      GL004  testdata/github/.github/workflows/continue-on-error.yml:9   step-level / Semgrep                              Semgrep runs in a step with continue-on-error: true, so a failing scan does not fail the workflow
+          fix: remove continue-on-error, or move non-blocking experiments to a separate job
+MEDIUM    GL004  testdata/github/.github/workflows/continue-on-error.yml:12  step-level / Gitleaks                             Gitleaks runs in a step with continue-on-error: ${{ matrix.experimental }}, which disables the gate whenever the expression is true
+          fix: remove continue-on-error, or move non-blocking experiments to a separate job
+HIGH      GL004  testdata/github/.github/workflows/continue-on-error.yml:21  job-level / Checkov                               Checkov runs in a job with continue-on-error: true, so a failing scan does not fail the workflow
+          fix: remove continue-on-error, or move non-blocking experiments to a separate job
+HIGH      GL001  testdata/github/.github/workflows/crlf.yml:10               scan / CRLF line endings                          Bandit failure is swallowed by `|| true`
+          fix: remove the "|| true" (or equivalent) so a failing scan fails the job
+MEDIUM    GL007  testdata/github/.github/workflows/defaults.yml:8            non-gating / Trivy without exit code              Trivy exits 0 when it finds issues and no gating option is set
+          fix: add --exit-code 1 so findings fail the build
+MEDIUM    GL007  testdata/github/.github/workflows/defaults.yml:10           non-gating / Grype without fail-on                Grype exits 0 when it finds issues and no gating option is set
+          fix: add --fail-on high so findings fail the build
+MEDIUM    GL007  testdata/github/.github/workflows/defaults.yml:12           non-gating / Semgrep scan without error           Semgrep exits 0 when it finds issues and no gating option is set
+          fix: add --error so findings fail the build
+MEDIUM    GL007  testdata/github/.github/workflows/defaults.yml:14           non-gating / TruffleHog without fail              TruffleHog exits 0 when it finds issues and no gating option is set
+          fix: add --fail so findings fail the build
+MEDIUM    GL007  testdata/github/.github/workflows/defaults.yml:16           non-gating / Trivy action without exit-code       aquasecurity/trivy-action@0.28.0 exits 0 when it finds issues and no gating option is set
+          fix: set exit-code: '1' on the step so findings fail the build
+INFO      GL007  testdata/github/.github/workflows/defaults.yml:20           non-gating / Snyk monitor                         Snyk: snyk monitor uploads a snapshot and never fails on vulnerabilities
+          fix: add a separate command that fails on findings (for Snyk, "snyk test")
+HIGH      GL009  testdata/github/.github/workflows/disabled.yml:8            scan / Semgrep turned off                         Semgrep step has if: false and never runs
+          fix: remove the condition that disables the scanner
+HIGH      GL009  testdata/github/.github/workflows/disabled.yml:11           scan / Gitleaks turned off                        Gitleaks step has if: ${{ false }} and never runs
+          fix: remove the condition that disables the scanner
+HIGH      GL009  testdata/github/.github/workflows/disabled.yml:17           off / run: trivy fs --exit-code 1 . || true       Trivy runs in job "off", which has if: ${{ false && github.event_name == 'push' }} and never runs
+          fix: remove the condition that disables the scanner
+HIGH      GL002  testdata/github/.github/workflows/errexit.yml:10            scan / set +e before gitleaks                     Gitleaks runs while errexit is off ("set +e" on line 9 disables it) and is not the last command, so a failing scan does not fail the job
+          fix: remove "set +e", or capture the status with rc=$? and exit with it
+HIGH      GL002  testdata/github/.github/workflows/errexit.yml:15            scan / Shell without -e                           Bandit runs while errexit is off (the shell "bash {0}" runs without -e) and is not the last command, so a failing scan does not fail the job
+          fix: remove "set +e", or capture the status with rc=$? and exit with it
+HIGH      GL002  testdata/github/.github/workflows/errexit.yml:20            scan / set +o errexit                             Checkov runs while errexit is off ("set +o errexit" on line 19 disables it) and is not the last command, so a failing scan does not fail the job
+          fix: remove "set +e", or capture the status with rc=$? and exit with it
+HIGH      GL006  testdata/github/.github/workflows/expressions.yml:10        scan / Exit code from env expression              Trivy is run with "--exit-code 0", which keeps the exit code at 0 when vulnerabilities are found
+          fix: remove the flag so the scanner exits non-zero on findings
+HIGH      GL006  testdata/github/.github/workflows/expressions.yml:12        scan / Exit code from shell variable              Trivy is run with "--exit-code 0", which keeps the exit code at 0 when vulnerabilities are found
+          fix: remove the flag so the scanner exits non-zero on findings
+HIGH      GL001  testdata/github/.github/workflows/fallback.yml:10           scan / Script the shell parser rejects            Trivy failure is swallowed by `|| true` (confidence: medium)
+          fix: remove the "|| true" (or equivalent) so a failing scan fails the job
+HIGH      GL006  testdata/github/.github/workflows/flags.yml:10              cli / Bandit exit zero                            Bandit is run with "--exit-zero", which exits 0 even when issues are found
+          fix: remove the flag so the scanner exits non-zero on findings
+HIGH      GL006  testdata/github/.github/workflows/flags.yml:12              cli / Checkov soft fail                           Checkov is run with "--soft-fail", which runs checks but always exits 0
+          fix: remove the flag so the scanner exits non-zero on findings
+HIGH      GL006  testdata/github/.github/workflows/flags.yml:14              cli / Gitleaks exit code zero                     Gitleaks is run with "--exit-code=0", which keeps the exit code at 0 when leaks are found
+          fix: remove the flag so the scanner exits non-zero on findings
+HIGH      GL006  testdata/github/.github/workflows/flags.yml:16              cli / npm audit none                              npm audit is run with "--audit-level=none", which never exits non-zero
+          fix: remove the flag so the scanner exits non-zero on findings
+HIGH      GL006  testdata/github/.github/workflows/flags.yml:18              cli / Trivy via environment                       Trivy runs with TRIVY_EXIT_CODE=0 in its environment, which keeps the exit code at 0 when vulnerabilities are found
+          fix: remove the flag so the scanner exits non-zero on findings
+HIGH      GL006  testdata/github/.github/workflows/flags.yml:20              cli / Trivy in docker                             Trivy is run with "--exit-code 0", which keeps the exit code at 0 when vulnerabilities are found
+          fix: remove the flag so the scanner exits non-zero on findings
+HIGH      GL006  testdata/github/.github/workflows/flags.yml:22              cli / tfsec short flag                            tfsec is run with "-s", which runs checks but suppresses the error exit code
+          fix: remove the flag so the scanner exits non-zero on findings
+HIGH      GL006  testdata/github/.github/workflows/flags.yml:24              cli / gosec no-fail                               gosec is run with "-no-fail", which exits 0 even when issues are found
+          fix: remove the flag so the scanner exits non-zero on findings
+HIGH      GL006  testdata/github/.github/workflows/flags.yml:28              cli / Container action                            tfsec is run with "--soft-fail", which runs checks but suppresses the error exit code
+          fix: remove the flag so the scanner exits non-zero on findings
+MEDIUM    GL003  testdata/github/.github/workflows/pipefail.yml:8            scan / Default shell pipes into tee               Trivy output is piped into "tee" and the shell does not set pipefail, so the step's status is that of "tee"
+          fix: set "shell: bash" on the step (it adds -o pipefail) or add "set -o pipefail" before the pipeline
+MEDIUM    GL003  testdata/github/.github/workflows/pipefail.yml:11           scan / sh pipes into tee                          Gitleaks output is piped into "tee" and the shell does not set pipefail, so the step's status is that of "tee"
+          fix: set "shell: bash" on the step (it adds -o pipefail) or add "set -o pipefail" before the pipeline
+MEDIUM    GL003  testdata/github/.github/workflows/pipefail.yml:15           scan / Custom shell without pipefail              Semgrep output is piped into "jq" and the shell does not set pipefail, so the step's status is that of "jq"
+          fix: set "shell: bash" on the step (it adds -o pipefail) or add "set -o pipefail" before the pipeline
+LOW       GL006  testdata/github/.github/workflows/redirect-report.yml:9     integration / Scan a deliberately vulnerable ...  Checkov is run with "-s", which runs checks but always exits 0
+          note: a later command at testdata/github/.github/workflows/redirect-report.yml:10 appears to fail the build based on checkov_report.txt
+          fix: remove the flag so the scanner exits non-zero on findings
+HIGH      GL006  testdata/github/.github/workflows/redirect-report.yml:13    integration / Report kept but never checked       Checkov is run with "-s", which runs checks but always exits 0
+          fix: remove the flag so the scanner exits non-zero on findings
+LOW       GL006  testdata/github/.github/workflows/redirect-report.yml:16    integration / Tee into a report that is gated...  Gitleaks is run with "--exit-code 0", which keeps the exit code at 0 when leaks are found
+          note: a later command at testdata/github/.github/workflows/redirect-report.yml:19 appears to fail the build based on leaks.txt
+          fix: remove the flag so the scanner exits non-zero on findings
+LOW       GL008  testdata/github/.github/workflows/report-only.yml:13        trivy / Trivy SARIF for code scanning             aquasecurity/trivy-action input "exit-code: 0" makes the action exit 0 when vulnerabilities are found
+          note: Trivy also runs in gating mode at testdata/github/.github/workflows/report-only.yml:18, so this run looks report-only
+          fix: remove the input (or set it to its gating value) so findings fail the step
+LOW       GL007  testdata/github/.github/workflows/report-only.yml:27        semgrep / Semgrep SARIF                           Semgrep exits 0 when it finds issues and no gating option is set
+          note: results are uploaded to code scanning, which blocks merges only when code scanning merge protection is configured
+          fix: add --error so findings fail the build
+LOW       GL006  testdata/github/.github/workflows/report-only.yml:35        gitleaks / Report                                 Gitleaks is run with "--exit-code 0", which keeps the exit code at 0 when leaks are found
+          note: a later command at testdata/github/.github/workflows/report-only.yml:38 appears to fail the build based on leaks.json
+          fix: remove the flag so the scanner exits non-zero on findings
+HIGH      GL001  testdata/github/.github/workflows/reusable-scan.yml:13      scan / Scan ${{ matrix.target }}                  Grype failure is swallowed by `|| true`
+          fix: remove the "|| true" (or equivalent) so a failing scan fails the job
+HIGH      GL006  testdata/github/.github/workflows/suppressions.yml:14       scan / Missing reason                             Bandit is run with "--exit-zero", which exits 0 even when issues are found
+          fix: remove the flag so the scanner exits non-zero on findings
+LOW       GL010  testdata/github/.github/workflows/suppressions.yml:14                                                         suppression has no reason, so it does not suppress anything
+          fix: add a reason of at least 10 characters after the rule IDs
+LOW       GL010  testdata/github/.github/workflows/suppressions.yml:16                                                         suppression has a reason shorter than 10 characters, so it does not suppress anything
+          fix: add a reason of at least 10 characters after the rule IDs
+HIGH      GL004  testdata/github/.github/workflows/suppressions.yml:17       scan / Short reason                               Gitleaks runs in a step with continue-on-error: true, so a failing scan does not fail the workflow
+          fix: remove continue-on-error, or move non-blocking experiments to a separate job
+LOW       GL010  testdata/github/.github/workflows/suppressions.yml:20                                                         suppression names unknown rule GL999
+          fix: add a reason of at least 10 characters after the rule IDs
+HIGH      GL001  testdata/github/.github/workflows/swallow.yml:9             scan / Trivy or true                              Trivy failure is swallowed by `|| true`
+          fix: remove the "|| true" (or equivalent) so a failing scan fails the job
+HIGH      GL001  testdata/github/.github/workflows/swallow.yml:12            scan / Gitleaks or echo                           Gitleaks failure is swallowed by `|| echo "leaks found, continuing"`
+          fix: remove the "|| true" (or equivalent) so a failing scan fails the job
+HIGH      GL001  testdata/github/.github/workflows/swallow.yml:14            scan / Negated semgrep                            Semgrep exit status is inverted with "!", which also exempts it from errexit
+          fix: remove the "!" in front of the scanner
+HIGH      GL001  testdata/github/.github/workflows/swallow.yml:17            scan / And list in the middle                     Bandit is on the left of `&& echo "bandit passed"` in the middle of the script; bash exempts it from errexit, so a failing scan does not stop the job
+          fix: run the scanner as its own command, or append "|| exit 1" to the list
+HIGH      GL001  testdata/github/.github/workflows/swallow.yml:21            scan / If without failing branch                  Checkov runs as an if/while condition and no branch exits with an error
+          fix: add "exit 1" to the branch that handles a failed scan
+HIGH      GL001  testdata/github/.github/workflows/swallow.yml:26            scan / Command substitution                       npm audit runs inside a command substitution whose status is discarded by `echo`
+          fix: run the scanner directly and capture its output with --output instead of $(...)
+HIGH      GL001  testdata/github/.github/workflows/swallow.yml:30            scan / Background                                 Snyk runs in the background with "&", so its exit status is never checked
+          fix: run the scanner in the foreground, or "wait" for it and check its status
+HIGH      GL001  testdata/github/.github/workflows/swallow.yml:33            scan / Exit zero                                  tfsec failure is swallowed by `|| exit 0`
+          fix: remove the "|| true" (or equivalent) so a failing scan fails the job
+HIGH      GL006  testdata/github/.github/workflows/windows.yml:8             scan / Trivy in pwsh                              Trivy is run with "--exit-code 0", which keeps the exit code at 0 when vulnerabilities are found (confidence: medium)
+          fix: remove the flag so the scanner exits non-zero on findings
+HIGH      GL001  testdata/github/.github/workflows/windows.yml:10            scan / Bandit in pwsh swallowed                   Bandit failure is swallowed by `|| Write-Host "bandit failed"` (confidence: medium)
+          fix: remove the "|| true" (or equivalent) so a failing scan fails the job
+
+Gate coverage
+  testdata/github/.github/actions/scan/action.yml
+    Bandit     Security scan / Bandit     line 8     neutered (GL006)
+    pip-audit  Security scan / pip-audit  line 12    neutered (GL001)
+  testdata/github/.github/workflows/actions.yml
+    Trivy       neutered / aquasecurity/trivy-action@0.28.0  line 7     neutered (GL008)
+    Grype       neutered / anchore/scan-action@v6            line 11    neutered (GL008)
+    Checkov     neutered / bridgecrewio/checkov-action@v12   line 15    neutered (GL008)
+    pip-audit   neutered / pypa/gh-action-pip-audit@v1.1.0   line 19    neutered (GL008)
+    gosec       neutered / securego/gosec@v2.22.0            line 23    neutered (GL008)
+    tfsec       neutered / aquasecurity/tfsec-action@v1.0.3  line 26    neutered (GL008)
+    Snyk        neutered / snyk/actions/node@master          line 29    non-gating (GL007)
+      snyk monitor uploads a snapshot and never fails on vulnerabilities
+    Grype       gating / anchore/scan-action@v6              line 35    gating
+    Gitleaks    gating / gitleaks/gitleaks-action@v2         line 38    gating
+    Checkov     gating / bridgecrewio/checkov-action@v12     line 39    gating
+    Snyk        gating / snyk/actions/python@master          line 43    gating
+    gosec       gating / securego/gosec@v2.22.0              line 46    gating
+    TruffleHog  gating / trufflesecurity/trufflehog@v3       line 49    gating
+    Bandit      gating / PyCQA/bandit-action@v1              line 50    non-gating
+      the action always exits 0 and uploads SARIF to code scanning; gate through code scanning merge protection
+  testdata/github/.github/workflows/clean.yml
+    Gitleaks   security / Secrets       line 11    gating
+    npm audit  security / Dependencies  line 15    gating
+    Trivy      security / Container     line 17    gating
+    Checkov    security / IaC           line 19    gating
+  testdata/github/.github/workflows/continue-on-error.yml
+    Semgrep   step-level / Semgrep           line 8     neutered (GL004)
+    Gitleaks  step-level / Gitleaks          line 11    neutered (GL004)
+    Bandit    step-level / Explicitly false  line 17    gating
+    Checkov   job-level / Checkov            line 24    neutered (GL004)
+  testdata/github/.github/workflows/crlf.yml
+    Bandit  scan / CRLF line endings  line 10    neutered (GL001)
+  testdata/github/.github/workflows/defaults.yml
+    Trivy       non-gating / Trivy without exit code                  line 8     non-gating (GL007)
+      Trivy exits 0 when it finds vulnerabilities unless --exit-code is set
+    Grype       non-gating / Grype without fail-on                    line 10    non-gating (GL007)
+      Grype exits 0 when it finds vulnerabilities unless --fail-on is set
+    Semgrep     non-gating / Semgrep scan without error               line 12    non-gating (GL007)
+      semgrep scan exits 0 on findings unless --error is set
+    TruffleHog  non-gating / TruffleHog without fail                  line 14    non-gating (GL007)
+      TruffleHog exits 0 when it finds secrets unless --fail is set
+    Trivy       non-gating / Trivy action without exit-code           line 16    non-gating (GL007)
+      trivy-action exits 0 on findings unless exit-code is set to a non-zero value
+    Snyk        non-gating / Snyk monitor                             line 20    non-gating (GL007)
+      snyk monitor uploads a snapshot and never fails on vulnerabilities
+    Trivy       gating / run: trivy image --exit-code 1 myapp:latest  line 24    gating
+    Grype       gating / run: grype dir:. --fail-on high              line 25    gating
+    Semgrep     gating / run: semgrep scan --config auto --error .    line 26    gating
+    Semgrep     gating / run: semgrep ci                              line 27    gating
+    TruffleHog  gating / run: trufflehog git file://. --fail          line 28    gating
+    Snyk        gating / run: snyk test --severity-threshold=high     line 29    gating
+    Trivy       gating / Exit code from an input                      line 31    unknown
+      gating depends on a value gatelint cannot resolve: --exit-code ${{ inputs.trivy-exit-code }}
+    Trivy       gating / Trivy action with exit-code                  line 33    gating
+    CodeQL      gating / github/codeql-action/analyze@v3              line 38    non-gating
+      CodeQL does not fail builds on alerts; results gate through code scanning merge protection
+  testdata/github/.github/workflows/disabled.yml
+    Semgrep   scan / Semgrep turned off                    line 9     disabled (GL009)
+    Gitleaks  scan / Gitleaks turned off                   line 12    disabled (GL009)
+    Semgrep   scan / Conditional is fine                   line 15    gating
+    Trivy     off / run: trivy fs --exit-code 1 . || true  line 20    disabled (GL009)
+  testdata/github/.github/workflows/errexit.yml
+    Gitleaks  scan / set +e before gitleaks       line 10    neutered (GL002)
+    Bandit    scan / Shell without -e             line 15    neutered (GL002)
+    Checkov   scan / set +o errexit               line 20    neutered (GL002)
+    Gitleaks  scan / Status captured              line 25    gating
+    Gitleaks  scan / Scanner is the last command  line 34    gating
+    Gitleaks  scan / errexit restored             line 40    gating
+  testdata/github/.github/workflows/expressions.yml
+    Trivy  scan / Exit code from env expression  line 10    neutered (GL006)
+    Trivy  scan / Exit code from shell variable  line 12    neutered (GL006)
+  testdata/github/.github/workflows/fallback.yml
+    Trivy  scan / Script the shell parser rejects  line 10    neutered (GL001)
+  testdata/github/.github/workflows/flags.yml
+    Bandit     cli / Bandit exit zero                     line 10    neutered (GL006)
+    Checkov    cli / Checkov soft fail                    line 12    neutered (GL006)
+    Gitleaks   cli / Gitleaks exit code zero              line 14    neutered (GL006)
+    npm audit  cli / npm audit none                       line 16    neutered (GL006)
+    Trivy      cli / Trivy via environment                line 18    neutered (GL006)
+    Trivy      cli / Trivy in docker                      line 20    neutered (GL006)
+    tfsec      cli / tfsec short flag                     line 22    neutered (GL006)
+    gosec      cli / gosec no-fail                        line 24    neutered (GL006)
+    tfsec      cli / Container action                     line 26    neutered (GL006)
+    Checkov    not-neutered / Soft fail explicitly false  line 37    gating
+    Gitleaks   not-neutered / Later flag overrides        line 39    gating
+  testdata/github/.github/workflows/pipefail.yml
+    Trivy     scan / Default shell pipes into tee                 line 8     neutered (GL003)
+    Gitleaks  scan / sh pipes into tee                            line 11    neutered (GL003)
+    Semgrep   scan / Custom shell without pipefail                line 15    neutered (GL003)
+    Trivy     pipefail-ok / Job default shell bash sets pipefail  line 23    gating
+    Gitleaks  pipefail-ok / Explicit pipefail                     line 28    gating
+    Bandit    pipefail-ok / Scanner last in pipeline              line 30    gating
+  testdata/github/.github/workflows/redirect-report.yml
+    Checkov   integration / Scan a deliberately vulnerable fixture ...  line 9     neutered (GL006)
+      a later command at testdata/github/.github/workflows/redirect-report.yml:10 appears to fail the build based on checkov_report.txt
+    Checkov   integration / Report kept but never checked               line 13    neutered (GL006)
+    Gitleaks  integration / Tee into a report that is gated later       line 16    neutered (GL006)
+      a later command at testdata/github/.github/workflows/redirect-report.yml:19 appears to fail the build based on leaks.txt
+  testdata/github/.github/workflows/report-only.yml
+    Trivy     trivy / Trivy SARIF for code scanning  line 8     neutered (GL008)
+      Trivy also runs in gating mode at testdata/github/.github/workflows/report-only.yml:18, so this run looks report-only
+    Trivy     trivy / Trivy gate                     line 18    gating
+    Semgrep   semgrep / Semgrep SARIF                line 27    non-gating (GL007)
+      semgrep scan exits 0 on findings unless --error is set
+    Gitleaks  gitleaks / Report                      line 35    neutered (GL006)
+      a later command at testdata/github/.github/workflows/report-only.yml:38 appears to fail the build based on leaks.json
+  testdata/github/.github/workflows/reusable-scan.yml
+    Grype  scan / Scan ${{ matrix.target }}  line 13    neutered (GL001)
+  testdata/github/.github/workflows/suppressions.yml
+    Semgrep   scan / Suppressed with a reason  line 10    neutered (GL004)
+    Trivy     scan / Same-line suppression     line 12    neutered (GL001)
+    Bandit    scan / Missing reason            line 14    neutered (GL006)
+    Gitleaks  scan / Short reason              line 18    neutered (GL004)
+    Checkov   scan / Unknown rule              line 20    gating
+  testdata/github/.github/workflows/swallow.yml
+    Trivy      scan / Trivy or true                      line 9     neutered (GL001)
+    Gitleaks   scan / Gitleaks or echo                   line 12    neutered (GL001)
+    Semgrep    scan / Negated semgrep                    line 14    neutered (GL001)
+    Bandit     scan / And list in the middle             line 17    neutered (GL001)
+    Checkov    scan / If without failing branch          line 21    neutered (GL001)
+    npm audit  scan / Command substitution               line 26    neutered (GL001)
+    Snyk       scan / Background                         line 30    neutered (GL001)
+    tfsec      scan / Exit zero                          line 33    neutered (GL001)
+    Trivy      not-scanners / Scanner failure handled    line 44    gating
+    Gitleaks   not-scanners / Scanner failure handled    line 45    gating
+    Grype      not-scanners / Scanner failure handled    line 49    gating
+    Semgrep    not-scanners / And list at the end gates  line 54    gating
+  testdata/github/.github/workflows/windows.yml
+    Trivy   scan / Trivy in pwsh             line 8     neutered (GL006)
+    Bandit  scan / Bandit in pwsh swallowed  line 10    neutered (GL001)
+
+Notes
+  testdata/github/.github/workflows/reusable.yml:7: job "remote-call" calls the remote reusable workflow example-org/shared-workflows/.github/workflows/scan.yml@v1, which is out of scope
+
+Summary: 62 findings (43 high, 9 medium, 8 low, 2 info), 2 suppressed; 97 scanners in 19 files: 33 gating, 50 neutered, 10 non-gating, 3 disabled, 1 unknown

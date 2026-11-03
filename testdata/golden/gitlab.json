@@ -1,0 +1,620 @@
+{
+  "tool": {
+    "name": "gatelint",
+    "version": "dev"
+  },
+  "summary": {
+    "findings": 19,
+    "high": 15,
+    "medium": 3,
+    "low": 1,
+    "info": 0,
+    "suppressed": 0,
+    "files": 7,
+    "scanners": 28,
+    "status": {
+      "disabled": 5,
+      "gating": 8,
+      "neutered": 14,
+      "non-gating": 1,
+      "unknown": 0
+    }
+  },
+  "files": [
+    "testdata/gitlab/basic/.gitlab-ci.yml",
+    "testdata/gitlab/clean/.gitlab-ci.yml",
+    "testdata/gitlab/includes/.gitlab-ci.yml",
+    "testdata/gitlab/includes/ci/scanners.yml",
+    "testdata/gitlab/pipefail/.gitlab-ci.yml",
+    "testdata/gitlab/report-only/.gitlab-ci.yml",
+    "testdata/gitlab/templates/.gitlab-ci.yml"
+  ],
+  "findings": [
+    {
+      "ruleId": "GL005",
+      "title": "Scanner job allowed to fail",
+      "severity": "high",
+      "confidence": "high",
+      "file": "testdata/gitlab/basic/.gitlab-ci.yml",
+      "line": 8,
+      "column": 3,
+      "job": "trivy",
+      "scanner": "Trivy",
+      "message": "Trivy job has allow_failure: true, so a failing scan does not fail the pipeline",
+      "fix": "remove allow_failure from the scanner job (or drop the scanner's failure code from exit_codes)",
+      "suppressed": false,
+      "fingerprint": "203195b2a804498d1074eeafc871a385"
+    },
+    {
+      "ruleId": "GL005",
+      "title": "Scanner job allowed to fail",
+      "severity": "high",
+      "confidence": "high",
+      "file": "testdata/gitlab/basic/.gitlab-ci.yml",
+      "line": 15,
+      "column": 3,
+      "job": "bandit",
+      "scanner": "Bandit",
+      "message": "Bandit job allows exit code 1, which is the scanner's failure code, so findings never fail the pipeline",
+      "fix": "remove allow_failure from the scanner job (or drop the scanner's failure code from exit_codes)",
+      "suppressed": false,
+      "fingerprint": "9fee14247b4dd491e58006ffe186966b"
+    },
+    {
+      "ruleId": "GL001",
+      "title": "Scanner failure swallowed by the shell",
+      "severity": "high",
+      "confidence": "high",
+      "file": "testdata/gitlab/basic/.gitlab-ci.yml",
+      "line": 28,
+      "column": 7,
+      "job": "semgrep-or-true",
+      "scanner": "Semgrep",
+      "message": "Semgrep failure is swallowed by `|| true`",
+      "fix": "remove the \"|| true\" (or equivalent) so a failing scan fails the job",
+      "suppressed": false,
+      "fingerprint": "dc317ca39737d91dfb8c9ab2f488ea97"
+    },
+    {
+      "ruleId": "GL002",
+      "title": "errexit disabled before a scanner",
+      "severity": "high",
+      "confidence": "high",
+      "file": "testdata/gitlab/basic/.gitlab-ci.yml",
+      "line": 34,
+      "column": 7,
+      "job": "checkov-set-e",
+      "scanner": "Checkov",
+      "message": "Checkov runs while errexit is off (\"set +e\" on line 33 disables it) and is not the last command, so a failing scan does not fail the job",
+      "fix": "remove \"set +e\", or capture the status with rc=$? and exit with it",
+      "suppressed": false,
+      "fingerprint": "efd283f1288a3788e7f02f3fcda0f303"
+    },
+    {
+      "ruleId": "GL005",
+      "title": "Scanner job allowed to fail",
+      "severity": "high",
+      "confidence": "high",
+      "file": "testdata/gitlab/basic/.gitlab-ci.yml",
+      "line": 42,
+      "column": 7,
+      "job": "tfsec-after-script",
+      "step": "after_script",
+      "scanner": "tfsec",
+      "message": "tfsec runs in after_script; GitLab ignores the exit status of after_script, so the scan can never fail the job",
+      "fix": "move the scanner from after_script to script",
+      "suppressed": false,
+      "fingerprint": "e0bd2561f75becc4fe310a89d2dacb31"
+    },
+    {
+      "ruleId": "GL009",
+      "title": "Scanner disabled",
+      "severity": "high",
+      "confidence": "high",
+      "file": "testdata/gitlab/basic/.gitlab-ci.yml",
+      "line": 48,
+      "column": 3,
+      "job": "manual-scan",
+      "scanner": "Grype",
+      "message": "Grype job has when: manual, so it only runs when started by hand and is allowed to fail",
+      "fix": "remove the condition that disables the scanner",
+      "suppressed": false,
+      "fingerprint": "236d16a9fb2b59c8e74b5173fe17f261"
+    },
+    {
+      "ruleId": "GL009",
+      "title": "Scanner disabled",
+      "severity": "high",
+      "confidence": "high",
+      "file": "testdata/gitlab/basic/.gitlab-ci.yml",
+      "line": 55,
+      "column": 7,
+      "job": "never-scan",
+      "scanner": "npm audit",
+      "message": "every rule of the npm audit job resolves to when: never, so the job never runs",
+      "fix": "remove the condition that disables the scanner",
+      "suppressed": false,
+      "fingerprint": "3863236fcfd9cef827ec9eb5eed881bd"
+    },
+    {
+      "ruleId": "GL005",
+      "title": "Scanner job allowed to fail",
+      "severity": "medium",
+      "confidence": "high",
+      "conditional": true,
+      "file": "testdata/gitlab/basic/.gitlab-ci.yml",
+      "line": 65,
+      "column": 7,
+      "job": "conditional-allow",
+      "scanner": "pip-audit",
+      "message": "pip-audit job sets allow_failure in 1 of 2 rules, so the scan cannot fail the pipeline when those rules match",
+      "fix": "remove allow_failure from the scanner job (or drop the scanner's failure code from exit_codes)",
+      "suppressed": false,
+      "fingerprint": "570c68692ea71d6f0ec433ce747d403f"
+    },
+    {
+      "ruleId": "GL006",
+      "title": "Neutering flag on the scanner command line",
+      "severity": "high",
+      "confidence": "high",
+      "file": "testdata/gitlab/includes/.gitlab-ci.yml",
+      "line": 20,
+      "column": 27,
+      "job": "sast-bandit",
+      "scanner": "Bandit",
+      "message": "Bandit is run with \"--exit-zero\", which exits 0 even when issues are found",
+      "fix": "remove the flag so the scanner exits non-zero on findings",
+      "suppressed": false,
+      "fingerprint": "fab6508c6abc262e0c001ac5b1cba0d1"
+    },
+    {
+      "ruleId": "GL005",
+      "title": "Scanner job allowed to fail",
+      "severity": "high",
+      "confidence": "high",
+      "file": "testdata/gitlab/includes/ci/scanners.yml",
+      "line": 12,
+      "column": 3,
+      "job": "secrets",
+      "scanner": "Gitleaks",
+      "message": "Gitleaks job has allow_failure: true, so a failing scan does not fail the pipeline",
+      "fix": "remove allow_failure from the scanner job (or drop the scanner's failure code from exit_codes)",
+      "suppressed": false,
+      "fingerprint": "eae9b9cef1c177758e549f571f5ae5cc"
+    },
+    {
+      "ruleId": "GL006",
+      "title": "Neutering flag on the scanner command line",
+      "severity": "high",
+      "confidence": "high",
+      "file": "testdata/gitlab/includes/ci/scanners.yml",
+      "line": 17,
+      "column": 17,
+      "job": "dependency-check",
+      "scanner": "npm audit",
+      "message": "npm audit is run with \"--audit-level=none\", which never exits non-zero",
+      "fix": "remove the flag so the scanner exits non-zero on findings",
+      "suppressed": false,
+      "fingerprint": "8697a38be167d9c439a62de65cc9ac1a"
+    },
+    {
+      "ruleId": "GL003",
+      "title": "Scanner piped without pipefail",
+      "severity": "medium",
+      "confidence": "high",
+      "file": "testdata/gitlab/pipefail/.gitlab-ci.yml",
+      "line": 4,
+      "column": 7,
+      "job": "trivy-tee",
+      "scanner": "Trivy",
+      "message": "Trivy output is piped into \"tee\" and the shell does not set pipefail, so the step's status is that of \"tee\"",
+      "fix": "remove \"set +o pipefail\" (GitLab Runner enables pipefail by default) or add \"set -o pipefail\" before the pipeline",
+      "suppressed": false,
+      "fingerprint": "994e20478906e6f134a45c079c5ef84d"
+    },
+    {
+      "ruleId": "GL006",
+      "title": "Neutering flag on the scanner command line",
+      "severity": "low",
+      "confidence": "high",
+      "file": "testdata/gitlab/report-only/.gitlab-ci.yml",
+      "line": 9,
+      "column": 7,
+      "job": "trivy-report",
+      "scanner": "Trivy",
+      "message": "Trivy runs with TRIVY_EXIT_CODE=0 in its environment, which keeps the exit code at 0 when vulnerabilities are found",
+      "fix": "remove the flag so the scanner exits non-zero on findings",
+      "notes": [
+        "a later command at testdata/gitlab/report-only/.gitlab-ci.yml:16 appears to fail the build based on trivy.json"
+      ],
+      "suppressed": false,
+      "fingerprint": "62850ba01aafb4b80e965780e11d09cb"
+    },
+    {
+      "ruleId": "GL006",
+      "title": "Neutering flag on the scanner command line",
+      "severity": "high",
+      "confidence": "high",
+      "file": "testdata/gitlab/report-only/.gitlab-ci.yml",
+      "line": 22,
+      "column": 44,
+      "job": "bandit-report",
+      "scanner": "Bandit",
+      "message": "Bandit is run with \"--exit-zero\", which exits 0 even when issues are found",
+      "fix": "remove the flag so the scanner exits non-zero on findings",
+      "suppressed": false,
+      "fingerprint": "34dce972ec5d63efe38b384f73ef19fd"
+    },
+    {
+      "ruleId": "GL001",
+      "title": "Scanner failure swallowed by the shell",
+      "severity": "medium",
+      "confidence": "high",
+      "file": "testdata/gitlab/report-only/.gitlab-ci.yml",
+      "line": 28,
+      "column": 7,
+      "job": "semgrep-sast-report",
+      "scanner": "Semgrep",
+      "message": "Semgrep failure is swallowed by `|| true`",
+      "fix": "remove the \"|| true\" (or equivalent) so a failing scan fails the job",
+      "notes": [
+        "results are published as the GitLab report artifact gl-sast-report.json, which blocks merges only through merge request approval policies"
+      ],
+      "suppressed": false,
+      "fingerprint": "d695d1415b3979091155e5f8c629a508"
+    },
+    {
+      "ruleId": "GL001",
+      "title": "Scanner failure swallowed by the shell",
+      "severity": "high",
+      "confidence": "high",
+      "file": "testdata/gitlab/report-only/.gitlab-ci.yml",
+      "line": 36,
+      "column": 7,
+      "job": "semgrep-plain-artifact",
+      "scanner": "Semgrep",
+      "message": "Semgrep failure is swallowed by `|| true`",
+      "fix": "remove the \"|| true\" (or equivalent) so a failing scan fails the job",
+      "suppressed": false,
+      "fingerprint": "e054478df4bd3fa9a97d324e65a3cec2"
+    },
+    {
+      "ruleId": "GL009",
+      "title": "Scanner disabled",
+      "severity": "high",
+      "confidence": "high",
+      "file": "testdata/gitlab/templates/.gitlab-ci.yml",
+      "line": 8,
+      "column": 3,
+      "scanner": "GitLab Secret Detection",
+      "message": "GitLab Secret Detection is disabled by SECRET_DETECTION_DISABLED: \"true\"",
+      "fix": "remove the condition that disables the scanner",
+      "suppressed": false,
+      "fingerprint": "c854238c44740789b4e7f65cd7ec82d1"
+    },
+    {
+      "ruleId": "GL009",
+      "title": "Scanner disabled",
+      "severity": "high",
+      "confidence": "high",
+      "file": "testdata/gitlab/templates/.gitlab-ci.yml",
+      "line": 12,
+      "column": 7,
+      "job": "semgrep-sast",
+      "scanner": "GitLab SAST",
+      "message": "every rule of the GitLab SAST job resolves to when: never, so the job never runs",
+      "fix": "remove the condition that disables the scanner",
+      "suppressed": false,
+      "fingerprint": "36169a2fa76a01625b00289eddf351c3"
+    },
+    {
+      "ruleId": "GL009",
+      "title": "Scanner disabled",
+      "severity": "high",
+      "confidence": "high",
+      "file": "testdata/gitlab/templates/.gitlab-ci.yml",
+      "line": 16,
+      "column": 5,
+      "job": "container_scanning",
+      "scanner": "GitLab Container Scanning",
+      "message": "GitLab Container Scanning is disabled by CONTAINER_SCANNING_DISABLED: \"1\"",
+      "fix": "remove the condition that disables the scanner",
+      "suppressed": false,
+      "fingerprint": "c3e859e277a56c2ef4b296a89ff08acb"
+    }
+  ],
+  "coverage": [
+    {
+      "file": "testdata/gitlab/basic/.gitlab-ci.yml",
+      "platform": "gitlab",
+      "scanners": [
+        {
+          "scanner": "Trivy",
+          "job": "trivy",
+          "line": 7,
+          "status": "neutered",
+          "rules": [
+            "GL005"
+          ]
+        },
+        {
+          "scanner": "Bandit",
+          "job": "bandit",
+          "line": 14,
+          "status": "neutered",
+          "rules": [
+            "GL005"
+          ]
+        },
+        {
+          "scanner": "Gitleaks",
+          "job": "gitleaks-other-codes",
+          "line": 21,
+          "status": "gating"
+        },
+        {
+          "scanner": "Semgrep",
+          "job": "semgrep-or-true",
+          "line": 28,
+          "status": "neutered",
+          "rules": [
+            "GL001"
+          ]
+        },
+        {
+          "scanner": "Checkov",
+          "job": "checkov-set-e",
+          "line": 34,
+          "status": "neutered",
+          "rules": [
+            "GL002"
+          ]
+        },
+        {
+          "scanner": "tfsec",
+          "job": "tfsec-after-script",
+          "step": "after_script",
+          "line": 42,
+          "status": "neutered",
+          "rules": [
+            "GL005"
+          ]
+        },
+        {
+          "scanner": "Grype",
+          "job": "manual-scan",
+          "line": 47,
+          "status": "disabled",
+          "rules": [
+            "GL009"
+          ]
+        },
+        {
+          "scanner": "npm audit",
+          "job": "never-scan",
+          "line": 53,
+          "status": "disabled",
+          "rules": [
+            "GL009"
+          ]
+        },
+        {
+          "scanner": "pip-audit",
+          "job": "conditional-allow",
+          "line": 62,
+          "status": "neutered",
+          "rules": [
+            "GL005"
+          ]
+        },
+        {
+          "scanner": "Gitleaks",
+          "job": "gating",
+          "line": 77,
+          "status": "gating"
+        },
+        {
+          "scanner": "Semgrep",
+          "job": "gating",
+          "line": 78,
+          "status": "gating"
+        }
+      ]
+    },
+    {
+      "file": "testdata/gitlab/clean/.gitlab-ci.yml",
+      "platform": "gitlab",
+      "scanners": [
+        {
+          "scanner": "Gitleaks",
+          "job": "secrets",
+          "line": 10,
+          "status": "gating"
+        },
+        {
+          "scanner": "Semgrep",
+          "job": "sast",
+          "line": 16,
+          "status": "gating"
+        },
+        {
+          "scanner": "Trivy",
+          "job": "container",
+          "line": 21,
+          "status": "gating"
+        }
+      ]
+    },
+    {
+      "file": "testdata/gitlab/includes/.gitlab-ci.yml",
+      "platform": "gitlab",
+      "scanners": [
+        {
+          "scanner": "Bandit",
+          "job": "sast-bandit",
+          "line": 20,
+          "status": "neutered",
+          "rules": [
+            "GL006"
+          ]
+        },
+        {
+          "scanner": "Gitleaks",
+          "job": "secrets",
+          "line": 25,
+          "status": "neutered",
+          "rules": [
+            "GL005"
+          ]
+        },
+        {
+          "scanner": "Trivy",
+          "job": "broken-reference",
+          "line": 30,
+          "status": "gating"
+        }
+      ]
+    },
+    {
+      "file": "testdata/gitlab/includes/ci/scanners.yml",
+      "platform": "gitlab",
+      "scanners": [
+        {
+          "scanner": "npm audit",
+          "job": "dependency-check",
+          "line": 17,
+          "status": "neutered",
+          "rules": [
+            "GL006"
+          ]
+        }
+      ]
+    },
+    {
+      "file": "testdata/gitlab/pipefail/.gitlab-ci.yml",
+      "platform": "gitlab",
+      "scanners": [
+        {
+          "scanner": "Trivy",
+          "job": "trivy-tee",
+          "line": 4,
+          "status": "neutered",
+          "rules": [
+            "GL003"
+          ]
+        },
+        {
+          "scanner": "Gitleaks",
+          "job": "gitleaks-tee-default",
+          "line": 8,
+          "status": "gating"
+        }
+      ]
+    },
+    {
+      "file": "testdata/gitlab/report-only/.gitlab-ci.yml",
+      "platform": "gitlab",
+      "scanners": [
+        {
+          "scanner": "Trivy",
+          "job": "trivy-report",
+          "line": 9,
+          "status": "neutered",
+          "rules": [
+            "GL006"
+          ],
+          "note": "a later command at testdata/gitlab/report-only/.gitlab-ci.yml:16 appears to fail the build based on trivy.json"
+        },
+        {
+          "scanner": "Bandit",
+          "job": "bandit-report",
+          "line": 22,
+          "status": "neutered",
+          "rules": [
+            "GL006"
+          ]
+        },
+        {
+          "scanner": "Semgrep",
+          "job": "semgrep-sast-report",
+          "line": 28,
+          "status": "neutered",
+          "rules": [
+            "GL001"
+          ],
+          "note": "results are published as the GitLab report artifact gl-sast-report.json, which blocks merges only through merge request approval policies"
+        },
+        {
+          "scanner": "Semgrep",
+          "job": "semgrep-plain-artifact",
+          "line": 36,
+          "status": "neutered",
+          "rules": [
+            "GL001"
+          ]
+        }
+      ]
+    },
+    {
+      "file": "testdata/gitlab/templates/.gitlab-ci.yml",
+      "platform": "gitlab",
+      "scanners": [
+        {
+          "scanner": "GitLab Secret Detection",
+          "line": 3,
+          "status": "disabled",
+          "rules": [
+            "GL009"
+          ]
+        },
+        {
+          "scanner": "GitLab Dependency Scanning",
+          "line": 4,
+          "status": "non-gating",
+          "note": "GitLab security templates do not fail pipelines on findings; enforce results with merge request approval policies"
+        },
+        {
+          "scanner": "GitLab SAST",
+          "job": "semgrep-sast",
+          "line": 10,
+          "status": "disabled",
+          "rules": [
+            "GL009"
+          ]
+        },
+        {
+          "scanner": "GitLab Container Scanning",
+          "job": "container_scanning",
+          "line": 14,
+          "status": "disabled",
+          "rules": [
+            "GL009"
+          ]
+        }
+      ]
+    }
+  ],
+  "notes": [
+    {
+      "file": "testdata/gitlab/includes/.gitlab-ci.yml",
+      "line": 3,
+      "message": "local include ci/missing.yml was not found"
+    },
+    {
+      "file": "testdata/gitlab/includes/.gitlab-ci.yml",
+      "line": 4,
+      "message": "remote include https://example.com/shared/ci.yml is out of scope"
+    },
+    {
+      "file": "testdata/gitlab/includes/.gitlab-ci.yml",
+      "line": 5,
+      "message": "include from project example-group/ci-templates is out of scope"
+    },
+    {
+      "file": "testdata/gitlab/includes/.gitlab-ci.yml",
+      "line": 29,
+      "message": "!reference [.does-not-exist, script] in job \"broken-reference\" could not be resolved; partial result"
+    }
+  ],
+  "errors": []
+}

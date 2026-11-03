@@ -1,0 +1,38 @@
+stages: [scan, gate]
+
+variables:
+  TRIVY_EXIT_CODE: "0"
+
+trivy-report:
+  stage: scan
+  script:
+    - trivy fs --format json --output trivy.json .
+  artifacts:
+    paths: [trivy.json]
+
+trivy-gate:
+  stage: gate
+  script:
+    - jq -e '[.Results[]?.Vulnerabilities // [] | length] | add == 0' trivy.json
+
+bandit-report:
+  stage: scan
+  script:
+    - |
+      bandit -r src -f json -o bandit.json --exit-zero
+      python scripts/summarise.py bandit.json
+
+semgrep-sast-report:
+  stage: scan
+  script:
+    - semgrep ci --json > gl-sast-report.json || true
+  artifacts:
+    reports:
+      sast: gl-sast-report.json
+
+semgrep-plain-artifact:
+  stage: scan
+  script:
+    - semgrep ci --json > semgrep.json || true
+  artifacts:
+    paths: [semgrep.json]

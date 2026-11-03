@@ -1,0 +1,78 @@
+stages: [test, security]
+
+trivy:
+  stage: security
+  image: aquasec/trivy:0.58.1
+  script:
+    - trivy fs --exit-code 1 .
+  allow_failure: true
+
+bandit:
+  stage: security
+  script:
+    - pip install bandit
+    - bandit -r src
+  allow_failure:
+    exit_codes: [1]
+
+gitleaks-other-codes:
+  stage: security
+  script:
+    - gitleaks detect --source .
+  allow_failure:
+    exit_codes: [3, 137]
+
+semgrep-or-true:
+  stage: security
+  script:
+    - semgrep ci || true
+
+checkov-set-e:
+  stage: security
+  script:
+    - set +e
+    - checkov -d infra
+    - echo "checkov done"
+
+tfsec-after-script:
+  stage: security
+  script:
+    - echo "building"
+  after_script:
+    - tfsec . --format junit > tfsec.xml
+
+manual-scan:
+  stage: security
+  script:
+    - grype dir:. --fail-on high
+  when: manual
+
+never-scan:
+  stage: security
+  script:
+    - npm audit
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+      when: never
+    - when: never
+
+conditional-allow:
+  stage: security
+  script:
+    - pip-audit -r requirements.txt
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      allow_failure: true
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+
+unit-tests:
+  stage: test
+  script:
+    - npm test || true
+  allow_failure: true
+
+gating:
+  stage: security
+  script:
+    - gitleaks detect --source .
+    - semgrep ci

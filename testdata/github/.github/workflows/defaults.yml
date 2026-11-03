@@ -1,0 +1,43 @@
+name: defaults
+on: push
+jobs:
+  non-gating:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trivy without exit code
+        run: trivy image myapp:latest
+      - name: Grype without fail-on
+        run: grype dir:.
+      - name: Semgrep scan without error
+        run: semgrep scan --config auto .
+      - name: TruffleHog without fail
+        run: trufflehog git file://. --only-verified
+      - name: Trivy action without exit-code
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: fs
+      - name: Snyk monitor
+        run: npx snyk@latest monitor --all-projects
+  gating:
+    runs-on: ubuntu-latest
+    steps:
+      - run: trivy image --exit-code 1 myapp:latest
+      - run: grype dir:. --fail-on high
+      - run: semgrep scan --config auto --error .
+      - run: semgrep ci
+      - run: trufflehog git file://. --fail
+      - run: snyk test --severity-threshold=high
+      - name: Exit code from an input
+        run: trivy fs --exit-code ${{ inputs.trivy-exit-code }} .
+      - name: Trivy action with exit-code
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: fs
+          exit-code: "1"
+      - uses: github/codeql-action/init@v3
+      - uses: github/codeql-action/analyze@v3
+      - name: Versions do not count
+        run: |
+          trivy --version
+          semgrep --version
+          pip install bandit pip-audit

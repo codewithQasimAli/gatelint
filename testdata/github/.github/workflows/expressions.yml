@@ -1,0 +1,12 @@
+name: expressions
+on: push
+env:
+  EXIT_CODE: "0"
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Exit code from env expression
+        run: trivy image ${{ github.repository }}:${{ github.sha }} --exit-code ${{ env.EXIT_CODE }}
+      - name: Exit code from shell variable
+        run: trivy image myapp --exit-code "$EXIT_CODE"

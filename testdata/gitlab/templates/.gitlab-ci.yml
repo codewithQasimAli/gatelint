@@ -1,0 +1,16 @@
+include:
+  - template: Jobs/SAST.gitlab-ci.yml
+  - template: Jobs/Secret-Detection.gitlab-ci.yml
+  - template: Jobs/Dependency-Scanning.gitlab-ci.yml
+  - component: $CI_SERVER_FQDN/components/container-scanning/container-scanning@6
+
+variables:
+  SECRET_DETECTION_DISABLED: "true"
+
+semgrep-sast:
+  rules:
+    - when: never
+
+container_scanning:
+  variables:
+    CONTAINER_SCANNING_DISABLED: "1"

@@ -1,0 +1,30 @@
+name: pipefail
+on: push
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Default shell pipes into tee
+        run: trivy fs --exit-code 1 . | tee trivy.txt
+      - name: sh pipes into tee
+        shell: sh
+        run: gitleaks detect --report-format json | tee leaks.json
+      - name: Custom shell without pipefail
+        shell: bash -e {0}
+        run: |
+          semgrep ci --json | jq . > semgrep.json
+  pipefail-ok:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Job default shell bash sets pipefail
+        run: trivy fs --exit-code 1 . | tee trivy.txt
+      - name: Explicit pipefail
+        shell: sh
+        run: |
+          set -o pipefail
+          gitleaks detect | tee leaks.txt
+      - name: Scanner last in pipeline
+        run: cat requirements.txt | bandit -r -

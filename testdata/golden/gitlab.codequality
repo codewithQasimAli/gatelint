@@ -1,0 +1,363 @@
+[
+  {
+    "type": "issue",
+    "check_name": "GL005",
+    "description": "GL005: Trivy job has allow_failure: true, so a failing scan does not fail the pipeline",
+    "content": {
+      "body": "Fix: remove allow_failure from the scanner job (or drop the scanner's failure code from exit_codes)"
+    },
+    "categories": [
+      "Security"
+    ],
+    "fingerprint": "203195b2a804498d1074eeafc871a385",
+    "severity": "critical",
+    "location": {
+      "path": "testdata/gitlab/basic/.gitlab-ci.yml",
+      "lines": {
+        "begin": 8
+      }
+    }
+  },
+  {
+    "type": "issue",
+    "check_name": "GL005",
+    "description": "GL005: Bandit job allows exit code 1, which is the scanner's failure code, so findings never fail the pipeline",
+    "content": {
+      "body": "Fix: remove allow_failure from the scanner job (or drop the scanner's failure code from exit_codes)"
+    },
+    "categories": [
+      "Security"
+    ],
+    "fingerprint": "9fee14247b4dd491e58006ffe186966b",
+    "severity": "critical",
+    "location": {
+      "path": "testdata/gitlab/basic/.gitlab-ci.yml",
+      "lines": {
+        "begin": 15
+      }
+    }
+  },
+  {
+    "type": "issue",
+    "check_name": "GL001",
+    "description": "GL001: Semgrep failure is swallowed by `|| true`",
+    "content": {
+      "body": "Fix: remove the \"|| true\" (or equivalent) so a failing scan fails the job"
+    },
+    "categories": [
+      "Security"
+    ],
+    "fingerprint": "dc317ca39737d91dfb8c9ab2f488ea97",
+    "severity": "critical",
+    "location": {
+      "path": "testdata/gitlab/basic/.gitlab-ci.yml",
+      "lines": {
+        "begin": 28
+      }
+    }
+  },
+  {
+    "type": "issue",
+    "check_name": "GL002",
+    "description": "GL002: Checkov runs while errexit is off (\"set +e\" on line 33 disables it) and is not the last command, so a failing scan does not fail the job",
+    "content": {
+      "body": "Fix: remove \"set +e\", or capture the status with rc=$? and exit with it"
+    },
+    "categories": [
+      "Security"
+    ],
+    "fingerprint": "efd283f1288a3788e7f02f3fcda0f303",
+    "severity": "critical",
+    "location": {
+      "path": "testdata/gitlab/basic/.gitlab-ci.yml",
+      "lines": {
+        "begin": 34
+      }
+    }
+  },
+  {
+    "type": "issue",
+    "check_name": "GL005",
+    "description": "GL005: tfsec runs in after_script; GitLab ignores the exit status of after_script, so the scan can never fail the job",
+    "content": {
+      "body": "Fix: move the scanner from after_script to script"
+    },
+    "categories": [
+      "Security"
+    ],
+    "fingerprint": "e0bd2561f75becc4fe310a89d2dacb31",
+    "severity": "critical",
+    "location": {
+      "path": "testdata/gitlab/basic/.gitlab-ci.yml",
+      "lines": {
+        "begin": 42
+      }
+    }
+  },
+  {
+    "type": "issue",
+    "check_name": "GL009",
+    "description": "GL009: Grype job has when: manual, so it only runs when started by hand and is allowed to fail",
+    "content": {
+      "body": "Fix: remove the condition that disables the scanner"
+    },
+    "categories": [
+      "Security"
+    ],
+    "fingerprint": "236d16a9fb2b59c8e74b5173fe17f261",
+    "severity": "critical",
+    "location": {
+      "path": "testdata/gitlab/basic/.gitlab-ci.yml",
+      "lines": {
+        "begin": 48
+      }
+    }
+  },
+  {
+    "type": "issue",
+    "check_name": "GL009",
+    "description": "GL009: every rule of the npm audit job resolves to when: never, so the job never runs",
+    "content": {
+      "body": "Fix: remove the condition that disables the scanner"
+    },
+    "categories": [
+      "Security"
+    ],
+    "fingerprint": "3863236fcfd9cef827ec9eb5eed881bd",
+    "severity": "critical",
+    "location": {
+      "path": "testdata/gitlab/basic/.gitlab-ci.yml",
+      "lines": {
+        "begin": 55
+      }
+    }
+  },
+  {
+    "type": "issue",
+    "check_name": "GL005",
+    "description": "GL005: pip-audit job sets allow_failure in 1 of 2 rules, so the scan cannot fail the pipeline when those rules match",
+    "content": {
+      "body": "Fix: remove allow_failure from the scanner job (or drop the scanner's failure code from exit_codes)"
+    },
+    "categories": [
+      "Security"
+    ],
+    "fingerprint": "570c68692ea71d6f0ec433ce747d403f",
+    "severity": "major",
+    "location": {
+      "path": "testdata/gitlab/basic/.gitlab-ci.yml",
+      "lines": {
+        "begin": 65
+      }
+    }
+  },
+  {
+    "type": "issue",
+    "check_name": "GL006",
+    "description": "GL006: Bandit is run with \"--exit-zero\", which exits 0 even when issues are found",
+    "content": {
+      "body": "Fix: remove the flag so the scanner exits non-zero on findings"
+    },
+    "categories": [
+      "Security"
+    ],
+    "fingerprint": "fab6508c6abc262e0c001ac5b1cba0d1",
+    "severity": "critical",
+    "location": {
+      "path": "testdata/gitlab/includes/.gitlab-ci.yml",
+      "lines": {
+        "begin": 20
+      }
+    }
+  },
+  {
+    "type": "issue",
+    "check_name": "GL005",
+    "description": "GL005: Gitleaks job has allow_failure: true, so a failing scan does not fail the pipeline",
+    "content": {
+      "body": "Fix: remove allow_failure from the scanner job (or drop the scanner's failure code from exit_codes)"
+    },
+    "categories": [
+      "Security"
+    ],
+    "fingerprint": "eae9b9cef1c177758e549f571f5ae5cc",
+    "severity": "critical",
+    "location": {
+      "path": "testdata/gitlab/includes/ci/scanners.yml",
+      "lines": {
+        "begin": 12
+      }
+    }
+  },
+  {
+    "type": "issue",
+    "check_name": "GL006",
+    "description": "GL006: npm audit is run with \"--audit-level=none\", which never exits non-zero",
+    "content": {
+      "body": "Fix: remove the flag so the scanner exits non-zero on findings"
+    },
+    "categories": [
+      "Security"
+    ],
+    "fingerprint": "8697a38be167d9c439a62de65cc9ac1a",
+    "severity": "critical",
+    "location": {
+      "path": "testdata/gitlab/includes/ci/scanners.yml",
+      "lines": {
+        "begin": 17
+      }
+    }
+  },
+  {
+    "type": "issue",
+    "check_name": "GL003",
+    "description": "GL003: Trivy output is piped into \"tee\" and the shell does not set pipefail, so the step's status is that of \"tee\"",
+    "content": {
+      "body": "Fix: remove \"set +o pipefail\" (GitLab Runner enables pipefail by default) or add \"set -o pipefail\" before the pipeline"
+    },
+    "categories": [
+      "Security"
+    ],
+    "fingerprint": "994e20478906e6f134a45c079c5ef84d",
+    "severity": "major",
+    "location": {
+      "path": "testdata/gitlab/pipefail/.gitlab-ci.yml",
+      "lines": {
+        "begin": 4
+      }
+    }
+  },
+  {
+    "type": "issue",
+    "check_name": "GL006",
+    "description": "GL006: Trivy runs with TRIVY_EXIT_CODE=0 in its environment, which keeps the exit code at 0 when vulnerabilities are found",
+    "content": {
+      "body": "Fix: remove the flag so the scanner exits non-zero on findings"
+    },
+    "categories": [
+      "Security"
+    ],
+    "fingerprint": "62850ba01aafb4b80e965780e11d09cb",
+    "severity": "minor",
+    "location": {
+      "path": "testdata/gitlab/report-only/.gitlab-ci.yml",
+      "lines": {
+        "begin": 9
+      }
+    }
+  },
+  {
+    "type": "issue",
+    "check_name": "GL006",
+    "description": "GL006: Bandit is run with \"--exit-zero\", which exits 0 even when issues are found",
+    "content": {
+      "body": "Fix: remove the flag so the scanner exits non-zero on findings"
+    },
+    "categories": [
+      "Security"
+    ],
+    "fingerprint": "34dce972ec5d63efe38b384f73ef19fd",
+    "severity": "critical",
+    "location": {
+      "path": "testdata/gitlab/report-only/.gitlab-ci.yml",
+      "lines": {
+        "begin": 22
+      }
+    }
+  },
+  {
+    "type": "issue",
+    "check_name": "GL001",
+    "description": "GL001: Semgrep failure is swallowed by `|| true`",
+    "content": {
+      "body": "Fix: remove the \"|| true\" (or equivalent) so a failing scan fails the job"
+    },
+    "categories": [
+      "Security"
+    ],
+    "fingerprint": "d695d1415b3979091155e5f8c629a508",
+    "severity": "major",
+    "location": {
+      "path": "testdata/gitlab/report-only/.gitlab-ci.yml",
+      "lines": {
+        "begin": 28
+      }
+    }
+  },
+  {
+    "type": "issue",
+    "check_name": "GL001",
+    "description": "GL001: Semgrep failure is swallowed by `|| true`",
+    "content": {
+      "body": "Fix: remove the \"|| true\" (or equivalent) so a failing scan fails the job"
+    },
+    "categories": [
+      "Security"
+    ],
+    "fingerprint": "e054478df4bd3fa9a97d324e65a3cec2",
+    "severity": "critical",
+    "location": {
+      "path": "testdata/gitlab/report-only/.gitlab-ci.yml",
+      "lines": {
+        "begin": 36
+      }
+    }
+  },
+  {
+    "type": "issue",
+    "check_name": "GL009",
+    "description": "GL009: GitLab Secret Detection is disabled by SECRET_DETECTION_DISABLED: \"true\"",
+    "content": {
+      "body": "Fix: remove the condition that disables the scanner"
+    },
+    "categories": [
+      "Security"
+    ],
+    "fingerprint": "c854238c44740789b4e7f65cd7ec82d1",
+    "severity": "critical",
+    "location": {
+      "path": "testdata/gitlab/templates/.gitlab-ci.yml",
+      "lines": {
+        "begin": 8
+      }
+    }
+  },
+  {
+    "type": "issue",
+    "check_name": "GL009",
+    "description": "GL009: every rule of the GitLab SAST job resolves to when: never, so the job never runs",
+    "content": {
+      "body": "Fix: remove the condition that disables the scanner"
+    },
+    "categories": [
+      "Security"
+    ],
+    "fingerprint": "36169a2fa76a01625b00289eddf351c3",
+    "severity": "critical",
+    "location": {
+      "path": "testdata/gitlab/templates/.gitlab-ci.yml",
+      "lines": {
+        "begin": 12
+      }
+    }
+  },
+  {
+    "type": "issue",
+    "check_name": "GL009",
+    "description": "GL009: GitLab Container Scanning is disabled by CONTAINER_SCANNING_DISABLED: \"1\"",
+    "content": {
+      "body": "Fix: remove the condition that disables the scanner"
+    },
+    "categories": [
+      "Security"
+    ],
+    "fingerprint": "c3e859e277a56c2ef4b296a89ff08acb",
+    "severity": "critical",
+    "location": {
+      "path": "testdata/gitlab/templates/.gitlab-ci.yml",
+      "lines": {
+        "begin": 16
+      }
+    }
+  }
+]

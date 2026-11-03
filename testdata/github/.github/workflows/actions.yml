@@ -1,0 +1,50 @@
+name: actions
+on: pull_request
+jobs:
+  neutered:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: myapp:latest
+          exit-code: '0'
+      - uses: anchore/scan-action@v6
+        with:
+          image: myapp:latest
+          fail-build: false
+      - uses: bridgecrewio/checkov-action@v12
+        with:
+          directory: infra
+          soft_fail: true
+      - uses: pypa/gh-action-pip-audit@v1.1.0
+        with:
+          inputs: requirements.txt
+          internal-be-careful-allow-failure: true
+      - uses: securego/gosec@v2.22.0
+        with:
+          args: -no-fail -fmt json ./...
+      - uses: aquasecurity/tfsec-action@v1.0.3
+        with:
+          soft_fail: true
+      - uses: snyk/actions/node@master
+        with:
+          command: monitor
+  gating:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: anchore/scan-action@v6
+        with:
+          image: myapp:latest
+      - uses: gitleaks/gitleaks-action@v2
+      - uses: bridgecrewio/checkov-action@v12
+        with:
+          directory: infra
+          soft_fail: false
+      - uses: snyk/actions/python@master
+        with:
+          args: --severity-threshold=high
+      - uses: securego/gosec@v2.22.0
+        with:
+          args: ./...
+      - uses: trufflesecurity/trufflehog@v3
+      - uses: PyCQA/bandit-action@v1

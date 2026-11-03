@@ -1,0 +1,20 @@
+name: suppressions
+on: push
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Suppressed with a reason
+        # gatelint:ignore GL004 nightly report only; the PR gate lives in ci.yml
+        continue-on-error: true
+        run: semgrep ci
+      - name: Same-line suppression
+        run: trivy fs --exit-code 1 . || true # gatelint:ignore GL001, GL003 tracked in SEC-1234 until the base image is fixed
+      - name: Missing reason
+        run: bandit -r src --exit-zero # gatelint:ignore GL006
+      - name: Short reason
+        # gatelint:ignore GL004 temp
+        continue-on-error: true
+        run: gitleaks detect
+      - name: Unknown rule
+        run: checkov -d . # gatelint:ignore GL999 this rule does not exist at all

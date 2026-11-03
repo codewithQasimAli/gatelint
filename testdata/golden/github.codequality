@@ -1,0 +1,1180 @@
+[
+  {
+    "type": "issue",
+    "check_name": "GL006",
+    "description": "GL006: Bandit is run with \"--exit-zero\", which exits 0 even when issues are found",
+    "content": {
+      "body": "Fix: remove the flag so the scanner exits non-zero on findings"
+    },
+    "categories": [
+      "Security"
+    ],
+    "fingerprint": "d655253acb9b27c03777480c2d624942",
+    "severity": "critical",
+    "location": {
+      "path": "testdata/github/.github/actions/scan/action.yml",
+      "lines": {
+        "begin": 8
+      }
+    }
+  },
+  {
+    "type": "issue",
+    "check_name": "GL001",
+    "description": "GL001: pip-audit failure is swallowed by `|| echo \"pip-audit failed\"`",
+    "content": {
+      "body": "Fix: remove the \"|| true\" (or equivalent) so a failing scan fails the job"
+    },
+    "categories": [
+      "Security"
+    ],
+    "fingerprint": "4283e856d684b1c9f0911db0bf987da4",
+    "severity": "critical",
+    "location": {
+      "path": "testdata/github/.github/actions/scan/action.yml",
+      "lines": {
+        "begin": 12
+      }
+    }
+  },
+  {
+    "type": "issue",
+    "check_name": "GL008",
+    "description": "GL008: aquasecurity/trivy-action input \"exit-code: 0\" makes the action exit 0 when vulnerabilities are found",
+    "content": {
+      "body": "Fix: remove the input (or set it to its gating value) so findings fail the step"
+    },
+    "categories": [
+      "Security"
+    ],
+    "fingerprint": "9348d0f9dd902986b0b79d3b7dd097a5",
+    "severity": "critical",
+    "location": {
+      "path": "testdata/github/.github/workflows/actions.yml",
+      "lines": {
+        "begin": 10
+      }
+    }
+  },
+  {
+    "type": "issue",
+    "check_name": "GL008",
+    "description": "GL008: anchore/scan-action input \"fail-build: false\" keeps the step green whatever Grype finds",
+    "content": {
+      "body": "Fix: remove the input (or set it to its gating value) so findings fail the step"
+    },
+    "categories": [
+      "Security"
+    ],
+    "fingerprint": "4a410006de54b2b9109e7e853a6e1a45",
+    "severity": "critical",
+    "location": {
+      "path": "testdata/github/.github/workflows/actions.yml",
+      "lines": {
+        "begin": 14
+      }
+    }
+  },
+  {
+    "type": "issue",
+    "check_name": "GL008",
+    "description": "GL008: bridgecrewio/checkov-action input \"soft_fail: true\" makes Checkov exit 0 when checks fail",
+    "content": {
+      "body": "Fix: remove the input (or set it to its gating value) so findings fail the step"
+    },
+    "categories": [
+      "Security"
+    ],
+    "fingerprint": "be48699ed6c07cbf0813d811366156bc",
+    "severity": "critical",
+    "location": {
+      "path": "testdata/github/.github/workflows/actions.yml",
+      "lines": {
+        "begin": 18
+      }
+    }
+  },
+  {
+    "type": "issue",
+    "check_name": "GL008",
+    "description": "GL008: pypa/gh-action-pip-audit input \"internal-be-careful-allow-failure: true\" keeps the step green when vulnerabilities are found",
+    "content": {
+      "body": "Fix: remove the input (or set it to its gating value) so findings fail the step"
+    },
+    "categories": [
+      "Security"
+    ],
+    "fingerprint": "e2768794ecac16445ee4a464c046eccd",
+    "severity": "critical",
+    "location": {
+      "path": "testdata/github/.github/workflows/actions.yml",
+      "lines": {
+        "begin": 22
+      }
+    }
+  },
+  {
+    "type": "issue",
+    "check_name": "GL008",
+    "description": "GL008: securego/gosec input args passes \"-no-fail\", which exits 0 even when issues are found",
+    "content": {
+      "body": "Fix: remove the input (or set it to its gating value) so findings fail the step"
+    },
+    "categories": [
+      "Security"
+    ],
+    "fingerprint": "fa720af3b4acb5c65ce3623e716ecec5",
+    "severity": "critical",
+    "location": {
+      "path": "testdata/github/.github/workflows/actions.yml",
+      "lines": {
+        "begin": 25
+      }
+    }
+  },
+  {
+    "type": "issue",
+    "check_name": "GL008",
+    "description": "GL008: aquasecurity/tfsec-action input \"soft_fail: true\" makes tfsec exit 0 when checks fail",
+    "content": {
+      "body": "Fix: remove the input (or set it to its gating value) so findings fail the step"
+    },
+    "categories": [
+      "Security"
+    ],
+    "fingerprint": "2d2e1f54fd397d0a8ea95ba72a582e97",
+    "severity": "critical",
+    "location": {
+      "path": "testdata/github/.github/workflows/actions.yml",
+      "lines": {
+        "begin": 28
+      }
+    }
+  },
+  {
+    "type": "issue",
+    "check_name": "GL007",
+    "description": "GL007: Snyk: snyk monitor uploads a snapshot and never fails on vulnerabilities",
+    "content": {
+      "body": "Fix: add a separate command that fails on findings (for Snyk, \"snyk test\")"
+    },
+    "categories": [
+      "Security"
+    ],
+    "fingerprint": "a29810cf98a535284256771d8201f41f",
+    "severity": "info",
+    "location": {
+      "path": "testdata/github/.github/workflows/actions.yml",
+      "lines": {
+        "begin": 29
+      }
+    }
+  },
+  {
+    "type": "issue",
+    "check_name": "GL004",
+    "description": "GL004: Semgrep runs in a step with continue-on-error: true, so a failing scan does not fail the workflow",
+    "content": {
+      "body": "Fix: remove continue-on-error, or move non-blocking experiments to a separate job"
+    },
+    "categories": [
+      "Security"
+    ],
+    "fingerprint": "21b839cef96c16b797942d2227de3834",
+    "severity": "critical",
+    "location": {
+      "path": "testdata/github/.github/workflows/continue-on-error.yml",
+      "lines": {
+        "begin": 9
+      }
+    }
+  },
+  {
+    "type": "issue",
+    "check_name": "GL004",
+    "description": "GL004: Gitleaks runs in a step with continue-on-error: ${{ matrix.experimental }}, which disables the gate whenever the expression is true",
+    "content": {
+      "body": "Fix: remove continue-on-error, or move non-blocking experiments to a separate job"
+    },
+    "categories": [
+      "Security"
+    ],
+    "fingerprint": "92e520307fc5a829cda670ddea981812",
+    "severity": "major",
+    "location": {
+      "path": "testdata/github/.github/workflows/continue-on-error.yml",
+      "lines": {
+        "begin": 12
+      }
+    }
+  },
+  {
+    "type": "issue",
+    "check_name": "GL004",
+    "description": "GL004: Checkov runs in a job with continue-on-error: true, so a failing scan does not fail the workflow",
+    "content": {
+      "body": "Fix: remove continue-on-error, or move non-blocking experiments to a separate job"
+    },
+    "categories": [
+      "Security"
+    ],
+    "fingerprint": "6c0f5dd03aaf01314986519609bcba5f",
+    "severity": "critical",
+    "location": {
+      "path": "testdata/github/.github/workflows/continue-on-error.yml",
+      "lines": {
+        "begin": 21
+      }
+    }
+  },
+  {
+    "type": "issue",
+    "check_name": "GL001",
+    "description": "GL001: Bandit failure is swallowed by `|| true`",
+    "content": {
+      "body": "Fix: remove the \"|| true\" (or equivalent) so a failing scan fails the job"
+    },
+    "categories": [
+      "Security"
+    ],
+    "fingerprint": "4a08ef427d406b46c78a6d64aeb465a5",
+    "severity": "critical",
+    "location": {
+      "path": "testdata/github/.github/workflows/crlf.yml",
+      "lines": {
+        "begin": 10
+      }
+    }
+  },
+  {
+    "type": "issue",
+    "check_name": "GL007",
+    "description": "GL007: Trivy exits 0 when it finds issues and no gating option is set",
+    "content": {
+      "body": "Fix: add --exit-code 1 so findings fail the build"
+    },
+    "categories": [
+      "Security"
+    ],
+    "fingerprint": "bd11b5672168f8b5f7b7922dcd284583",
+    "severity": "major",
+    "location": {
+      "path": "testdata/github/.github/workflows/defaults.yml",
+      "lines": {
+        "begin": 8
+      }
+    }
+  },
+  {
+    "type": "issue",
+    "check_name": "GL007",
+    "description": "GL007: Grype exits 0 when it finds issues and no gating option is set",
+    "content": {
+      "body": "Fix: add --fail-on high so findings fail the build"
+    },
+    "categories": [
+      "Security"
+    ],
+    "fingerprint": "adbf708c17e79fa0715c841ef62c7681",
+    "severity": "major",
+    "location": {
+      "path": "testdata/github/.github/workflows/defaults.yml",
+      "lines": {
+        "begin": 10
+      }
+    }
+  },
+  {
+    "type": "issue",
+    "check_name": "GL007",
+    "description": "GL007: Semgrep exits 0 when it finds issues and no gating option is set",
+    "content": {
+      "body": "Fix: add --error so findings fail the build"
+    },
+    "categories": [
+      "Security"
+    ],
+    "fingerprint": "f6174a5705a5e6482a86d6d5ee131d7c",
+    "severity": "major",
+    "location": {
+      "path": "testdata/github/.github/workflows/defaults.yml",
+      "lines": {
+        "begin": 12
+      }
+    }
+  },
+  {
+    "type": "issue",
+    "check_name": "GL007",
+    "description": "GL007: TruffleHog exits 0 when it finds issues and no gating option is set",
+    "content": {
+      "body": "Fix: add --fail so findings fail the build"
+    },
+    "categories": [
+      "Security"
+    ],
+    "fingerprint": "7cff5d8bc354de8a25733f9d8df29733",
+    "severity": "major",
+    "location": {
+      "path": "testdata/github/.github/workflows/defaults.yml",
+      "lines": {
+        "begin": 14
+      }
+    }
+  },
+  {
+    "type": "issue",
+    "check_name": "GL007",
+    "description": "GL007: aquasecurity/trivy-action@0.28.0 exits 0 when it finds issues and no gating option is set",
+    "content": {
+      "body": "Fix: set exit-code: '1' on the step so findings fail the build"
+    },
+    "categories": [
+      "Security"
+    ],
+    "fingerprint": "677f3d6b0e79854c8b1696d8d39407e3",
+    "severity": "major",
+    "location": {
+      "path": "testdata/github/.github/workflows/defaults.yml",
+      "lines": {
+        "begin": 16
+      }
+    }
+  },
+  {
+    "type": "issue",
+    "check_name": "GL007",
+    "description": "GL007: Snyk: snyk monitor uploads a snapshot and never fails on vulnerabilities",
+    "content": {
+      "body": "Fix: add a separate command that fails on findings (for Snyk, \"snyk test\")"
+    },
+    "categories": [
+      "Security"
+    ],
+    "fingerprint": "a6108bb93cacd699062de09397e3c08f",
+    "severity": "info",
+    "location": {
+      "path": "testdata/github/.github/workflows/defaults.yml",
+      "lines": {
+        "begin": 20
+      }
+    }
+  },
+  {
+    "type": "issue",
+    "check_name": "GL009",
+    "description": "GL009: Semgrep step has if: false and never runs",
+    "content": {
+      "body": "Fix: remove the condition that disables the scanner"
+    },
+    "categories": [
+      "Security"
+    ],
+    "fingerprint": "8e6865a646ad07873671a843d9e358e2",
+    "severity": "critical",
+    "location": {
+      "path": "testdata/github/.github/workflows/disabled.yml",
+      "lines": {
+        "begin": 8
+      }
+    }
+  },
+  {
+    "type": "issue",
+    "check_name": "GL009",
+    "description": "GL009: Gitleaks step has if: ${{ false }} and never runs",
+    "content": {
+      "body": "Fix: remove the condition that disables the scanner"
+    },
+    "categories": [
+      "Security"
+    ],
+    "fingerprint": "cffc2ded3f7fbb97e8e3a405c5c9d19f",
+    "severity": "critical",
+    "location": {
+      "path": "testdata/github/.github/workflows/disabled.yml",
+      "lines": {
+        "begin": 11
+      }
+    }
+  },
+  {
+    "type": "issue",
+    "check_name": "GL009",
+    "description": "GL009: Trivy runs in job \"off\", which has if: ${{ false && github.event_name == 'push' }} and never runs",
+    "content": {
+      "body": "Fix: remove the condition that disables the scanner"
+    },
+    "categories": [
+      "Security"
+    ],
+    "fingerprint": "ee7bd1eda34265e472d3b099f0eac292",
+    "severity": "critical",
+    "location": {
+      "path": "testdata/github/.github/workflows/disabled.yml",
+      "lines": {
+        "begin": 17
+      }
+    }
+  },
+  {
+    "type": "issue",
+    "check_name": "GL002",
+    "description": "GL002: Gitleaks runs while errexit is off (\"set +e\" on line 9 disables it) and is not the last command, so a failing scan does not fail the job",
+    "content": {
+      "body": "Fix: remove \"set +e\", or capture the status with rc=$? and exit with it"
+    },
+    "categories": [
+      "Security"
+    ],
+    "fingerprint": "796211a75502fe2f7f0122cb0996af7c",
+    "severity": "critical",
+    "location": {
+      "path": "testdata/github/.github/workflows/errexit.yml",
+      "lines": {
+        "begin": 10
+      }
+    }
+  },
+  {
+    "type": "issue",
+    "check_name": "GL002",
+    "description": "GL002: Bandit runs while errexit is off (the shell \"bash {0}\" runs without -e) and is not the last command, so a failing scan does not fail the job",
+    "content": {
+      "body": "Fix: remove \"set +e\", or capture the status with rc=$? and exit with it"
+    },
+    "categories": [
+      "Security"
+    ],
+    "fingerprint": "2872a3b6af9246b97d746d6775ca8c7f",
+    "severity": "critical",
+    "location": {
+      "path": "testdata/github/.github/workflows/errexit.yml",
+      "lines": {
+        "begin": 15
+      }
+    }
+  },
+  {
+    "type": "issue",
+    "check_name": "GL002",
+    "description": "GL002: Checkov runs while errexit is off (\"set +o errexit\" on line 19 disables it) and is not the last command, so a failing scan does not fail the job",
+    "content": {
+      "body": "Fix: remove \"set +e\", or capture the status with rc=$? and exit with it"
+    },
+    "categories": [
+      "Security"
+    ],
+    "fingerprint": "9569ec6d6a8ba8112a8f58fe2639c89f",
+    "severity": "critical",
+    "location": {
+      "path": "testdata/github/.github/workflows/errexit.yml",
+      "lines": {
+        "begin": 20
+      }
+    }
+  },
+  {
+    "type": "issue",
+    "check_name": "GL006",
+    "description": "GL006: Trivy is run with \"--exit-code 0\", which keeps the exit code at 0 when vulnerabilities are found",
+    "content": {
+      "body": "Fix: remove the flag so the scanner exits non-zero on findings"
+    },
+    "categories": [
+      "Security"
+    ],
+    "fingerprint": "e7c49c5047d945a0e17a5aa94ce10994",
+    "severity": "critical",
+    "location": {
+      "path": "testdata/github/.github/workflows/expressions.yml",
+      "lines": {
+        "begin": 10
+      }
+    }
+  },
+  {
+    "type": "issue",
+    "check_name": "GL006",
+    "description": "GL006: Trivy is run with \"--exit-code 0\", which keeps the exit code at 0 when vulnerabilities are found",
+    "content": {
+      "body": "Fix: remove the flag so the scanner exits non-zero on findings"
+    },
+    "categories": [
+      "Security"
+    ],
+    "fingerprint": "9b64c697e4ef4a8d6d9eaa2e520a2401",
+    "severity": "critical",
+    "location": {
+      "path": "testdata/github/.github/workflows/expressions.yml",
+      "lines": {
+        "begin": 12
+      }
+    }
+  },
+  {
+    "type": "issue",
+    "check_name": "GL001",
+    "description": "GL001: Trivy failure is swallowed by `|| true`",
+    "content": {
+      "body": "Fix: remove the \"|| true\" (or equivalent) so a failing scan fails the job"
+    },
+    "categories": [
+      "Security"
+    ],
+    "fingerprint": "f822413d7cbb81ce8ad218db5563153a",
+    "severity": "critical",
+    "location": {
+      "path": "testdata/github/.github/workflows/fallback.yml",
+      "lines": {
+        "begin": 10
+      }
+    }
+  },
+  {
+    "type": "issue",
+    "check_name": "GL006",
+    "description": "GL006: Bandit is run with \"--exit-zero\", which exits 0 even when issues are found",
+    "content": {
+      "body": "Fix: remove the flag so the scanner exits non-zero on findings"
+    },
+    "categories": [
+      "Security"
+    ],
+    "fingerprint": "981591f8ea3a1ce3749353e4df4aa0c0",
+    "severity": "critical",
+    "location": {
+      "path": "testdata/github/.github/workflows/flags.yml",
+      "lines": {
+        "begin": 10
+      }
+    }
+  },
+  {
+    "type": "issue",
+    "check_name": "GL006",
+    "description": "GL006: Checkov is run with \"--soft-fail\", which runs checks but always exits 0",
+    "content": {
+      "body": "Fix: remove the flag so the scanner exits non-zero on findings"
+    },
+    "categories": [
+      "Security"
+    ],
+    "fingerprint": "7e66b44a062f104dc73353e158c598c1",
+    "severity": "critical",
+    "location": {
+      "path": "testdata/github/.github/workflows/flags.yml",
+      "lines": {
+        "begin": 12
+      }
+    }
+  },
+  {
+    "type": "issue",
+    "check_name": "GL006",
+    "description": "GL006: Gitleaks is run with \"--exit-code=0\", which keeps the exit code at 0 when leaks are found",
+    "content": {
+      "body": "Fix: remove the flag so the scanner exits non-zero on findings"
+    },
+    "categories": [
+      "Security"
+    ],
+    "fingerprint": "ed9e2a567d074e3ae9cf5495f45a21e5",
+    "severity": "critical",
+    "location": {
+      "path": "testdata/github/.github/workflows/flags.yml",
+      "lines": {
+        "begin": 14
+      }
+    }
+  },
+  {
+    "type": "issue",
+    "check_name": "GL006",
+    "description": "GL006: npm audit is run with \"--audit-level=none\", which never exits non-zero",
+    "content": {
+      "body": "Fix: remove the flag so the scanner exits non-zero on findings"
+    },
+    "categories": [
+      "Security"
+    ],
+    "fingerprint": "8c98634fecbb3e511b88a06d6d462f75",
+    "severity": "critical",
+    "location": {
+      "path": "testdata/github/.github/workflows/flags.yml",
+      "lines": {
+        "begin": 16
+      }
+    }
+  },
+  {
+    "type": "issue",
+    "check_name": "GL006",
+    "description": "GL006: Trivy runs with TRIVY_EXIT_CODE=0 in its environment, which keeps the exit code at 0 when vulnerabilities are found",
+    "content": {
+      "body": "Fix: remove the flag so the scanner exits non-zero on findings"
+    },
+    "categories": [
+      "Security"
+    ],
+    "fingerprint": "06605c17307c0ce2b302cd1577f9b043",
+    "severity": "critical",
+    "location": {
+      "path": "testdata/github/.github/workflows/flags.yml",
+      "lines": {
+        "begin": 18
+      }
+    }
+  },
+  {
+    "type": "issue",
+    "check_name": "GL006",
+    "description": "GL006: Trivy is run with \"--exit-code 0\", which keeps the exit code at 0 when vulnerabilities are found",
+    "content": {
+      "body": "Fix: remove the flag so the scanner exits non-zero on findings"
+    },
+    "categories": [
+      "Security"
+    ],
+    "fingerprint": "99bc14ab54105ed94856808923d3f517",
+    "severity": "critical",
+    "location": {
+      "path": "testdata/github/.github/workflows/flags.yml",
+      "lines": {
+        "begin": 20
+      }
+    }
+  },
+  {
+    "type": "issue",
+    "check_name": "GL006",
+    "description": "GL006: tfsec is run with \"-s\", which runs checks but suppresses the error exit code",
+    "content": {
+      "body": "Fix: remove the flag so the scanner exits non-zero on findings"
+    },
+    "categories": [
+      "Security"
+    ],
+    "fingerprint": "7462545df22c77977136ef593a419f91",
+    "severity": "critical",
+    "location": {
+      "path": "testdata/github/.github/workflows/flags.yml",
+      "lines": {
+        "begin": 22
+      }
+    }
+  },
+  {
+    "type": "issue",
+    "check_name": "GL006",
+    "description": "GL006: gosec is run with \"-no-fail\", which exits 0 even when issues are found",
+    "content": {
+      "body": "Fix: remove the flag so the scanner exits non-zero on findings"
+    },
+    "categories": [
+      "Security"
+    ],
+    "fingerprint": "bf756c51305f523726d3b8edcc0f1496",
+    "severity": "critical",
+    "location": {
+      "path": "testdata/github/.github/workflows/flags.yml",
+      "lines": {
+        "begin": 24
+      }
+    }
+  },
+  {
+    "type": "issue",
+    "check_name": "GL006",
+    "description": "GL006: tfsec is run with \"--soft-fail\", which runs checks but suppresses the error exit code",
+    "content": {
+      "body": "Fix: remove the flag so the scanner exits non-zero on findings"
+    },
+    "categories": [
+      "Security"
+    ],
+    "fingerprint": "3ffde5d92c886bccdd2c579adc7901f4",
+    "severity": "critical",
+    "location": {
+      "path": "testdata/github/.github/workflows/flags.yml",
+      "lines": {
+        "begin": 28
+      }
+    }
+  },
+  {
+    "type": "issue",
+    "check_name": "GL003",
+    "description": "GL003: Trivy output is piped into \"tee\" and the shell does not set pipefail, so the step's status is that of \"tee\"",
+    "content": {
+      "body": "Fix: set \"shell: bash\" on the step (it adds -o pipefail) or add \"set -o pipefail\" before the pipeline"
+    },
+    "categories": [
+      "Security"
+    ],
+    "fingerprint": "9ad8061142126b50a5493e11ab179a02",
+    "severity": "major",
+    "location": {
+      "path": "testdata/github/.github/workflows/pipefail.yml",
+      "lines": {
+        "begin": 8
+      }
+    }
+  },
+  {
+    "type": "issue",
+    "check_name": "GL003",
+    "description": "GL003: Gitleaks output is piped into \"tee\" and the shell does not set pipefail, so the step's status is that of \"tee\"",
+    "content": {
+      "body": "Fix: set \"shell: bash\" on the step (it adds -o pipefail) or add \"set -o pipefail\" before the pipeline"
+    },
+    "categories": [
+      "Security"
+    ],
+    "fingerprint": "50d559d29b46bbea01461d7bd82f94cc",
+    "severity": "major",
+    "location": {
+      "path": "testdata/github/.github/workflows/pipefail.yml",
+      "lines": {
+        "begin": 11
+      }
+    }
+  },
+  {
+    "type": "issue",
+    "check_name": "GL003",
+    "description": "GL003: Semgrep output is piped into \"jq\" and the shell does not set pipefail, so the step's status is that of \"jq\"",
+    "content": {
+      "body": "Fix: set \"shell: bash\" on the step (it adds -o pipefail) or add \"set -o pipefail\" before the pipeline"
+    },
+    "categories": [
+      "Security"
+    ],
+    "fingerprint": "5ea2f75a5b2bd9cee3dff7d8414ba339",
+    "severity": "major",
+    "location": {
+      "path": "testdata/github/.github/workflows/pipefail.yml",
+      "lines": {
+        "begin": 15
+      }
+    }
+  },
+  {
+    "type": "issue",
+    "check_name": "GL006",
+    "description": "GL006: Checkov is run with \"-s\", which runs checks but always exits 0",
+    "content": {
+      "body": "Fix: remove the flag so the scanner exits non-zero on findings"
+    },
+    "categories": [
+      "Security"
+    ],
+    "fingerprint": "fb99807525124a9a9f8d48d8f2c2a1d5",
+    "severity": "minor",
+    "location": {
+      "path": "testdata/github/.github/workflows/redirect-report.yml",
+      "lines": {
+        "begin": 9
+      }
+    }
+  },
+  {
+    "type": "issue",
+    "check_name": "GL006",
+    "description": "GL006: Checkov is run with \"-s\", which runs checks but always exits 0",
+    "content": {
+      "body": "Fix: remove the flag so the scanner exits non-zero on findings"
+    },
+    "categories": [
+      "Security"
+    ],
+    "fingerprint": "48e3f045faa993133b4ad04af6c4a68e",
+    "severity": "critical",
+    "location": {
+      "path": "testdata/github/.github/workflows/redirect-report.yml",
+      "lines": {
+        "begin": 13
+      }
+    }
+  },
+  {
+    "type": "issue",
+    "check_name": "GL006",
+    "description": "GL006: Gitleaks is run with \"--exit-code 0\", which keeps the exit code at 0 when leaks are found",
+    "content": {
+      "body": "Fix: remove the flag so the scanner exits non-zero on findings"
+    },
+    "categories": [
+      "Security"
+    ],
+    "fingerprint": "8c956ee7ff4e7d2f62721e33883d5607",
+    "severity": "minor",
+    "location": {
+      "path": "testdata/github/.github/workflows/redirect-report.yml",
+      "lines": {
+        "begin": 16
+      }
+    }
+  },
+  {
+    "type": "issue",
+    "check_name": "GL008",
+    "description": "GL008: aquasecurity/trivy-action input \"exit-code: 0\" makes the action exit 0 when vulnerabilities are found",
+    "content": {
+      "body": "Fix: remove the input (or set it to its gating value) so findings fail the step"
+    },
+    "categories": [
+      "Security"
+    ],
+    "fingerprint": "72eef2dedd845c25bd0ecec4b4aca8e1",
+    "severity": "minor",
+    "location": {
+      "path": "testdata/github/.github/workflows/report-only.yml",
+      "lines": {
+        "begin": 13
+      }
+    }
+  },
+  {
+    "type": "issue",
+    "check_name": "GL007",
+    "description": "GL007: Semgrep exits 0 when it finds issues and no gating option is set",
+    "content": {
+      "body": "Fix: add --error so findings fail the build"
+    },
+    "categories": [
+      "Security"
+    ],
+    "fingerprint": "dac27532c18a633111ab44780430a535",
+    "severity": "minor",
+    "location": {
+      "path": "testdata/github/.github/workflows/report-only.yml",
+      "lines": {
+        "begin": 27
+      }
+    }
+  },
+  {
+    "type": "issue",
+    "check_name": "GL006",
+    "description": "GL006: Gitleaks is run with \"--exit-code 0\", which keeps the exit code at 0 when leaks are found",
+    "content": {
+      "body": "Fix: remove the flag so the scanner exits non-zero on findings"
+    },
+    "categories": [
+      "Security"
+    ],
+    "fingerprint": "ee9a99fcffc900c37f132ba62fa44830",
+    "severity": "minor",
+    "location": {
+      "path": "testdata/github/.github/workflows/report-only.yml",
+      "lines": {
+        "begin": 35
+      }
+    }
+  },
+  {
+    "type": "issue",
+    "check_name": "GL001",
+    "description": "GL001: Grype failure is swallowed by `|| true`",
+    "content": {
+      "body": "Fix: remove the \"|| true\" (or equivalent) so a failing scan fails the job"
+    },
+    "categories": [
+      "Security"
+    ],
+    "fingerprint": "530d97bca8b29d1446892c60092c8e0c",
+    "severity": "critical",
+    "location": {
+      "path": "testdata/github/.github/workflows/reusable-scan.yml",
+      "lines": {
+        "begin": 13
+      }
+    }
+  },
+  {
+    "type": "issue",
+    "check_name": "GL006",
+    "description": "GL006: Bandit is run with \"--exit-zero\", which exits 0 even when issues are found",
+    "content": {
+      "body": "Fix: remove the flag so the scanner exits non-zero on findings"
+    },
+    "categories": [
+      "Security"
+    ],
+    "fingerprint": "0440d7fa0f11a2ef994f513e16525382",
+    "severity": "critical",
+    "location": {
+      "path": "testdata/github/.github/workflows/suppressions.yml",
+      "lines": {
+        "begin": 14
+      }
+    }
+  },
+  {
+    "type": "issue",
+    "check_name": "GL010",
+    "description": "GL010: suppression has no reason, so it does not suppress anything",
+    "content": {
+      "body": "Fix: add a reason of at least 10 characters after the rule IDs"
+    },
+    "categories": [
+      "Security"
+    ],
+    "fingerprint": "e0a2d6dc57e93465853f961cb09e8513",
+    "severity": "minor",
+    "location": {
+      "path": "testdata/github/.github/workflows/suppressions.yml",
+      "lines": {
+        "begin": 14
+      }
+    }
+  },
+  {
+    "type": "issue",
+    "check_name": "GL010",
+    "description": "GL010: suppression has a reason shorter than 10 characters, so it does not suppress anything",
+    "content": {
+      "body": "Fix: add a reason of at least 10 characters after the rule IDs"
+    },
+    "categories": [
+      "Security"
+    ],
+    "fingerprint": "3b0070456be0085b788780935416b7dc",
+    "severity": "minor",
+    "location": {
+      "path": "testdata/github/.github/workflows/suppressions.yml",
+      "lines": {
+        "begin": 16
+      }
+    }
+  },
+  {
+    "type": "issue",
+    "check_name": "GL004",
+    "description": "GL004: Gitleaks runs in a step with continue-on-error: true, so a failing scan does not fail the workflow",
+    "content": {
+      "body": "Fix: remove continue-on-error, or move non-blocking experiments to a separate job"
+    },
+    "categories": [
+      "Security"
+    ],
+    "fingerprint": "5591a4024585f7e25cbf7325b76992a2",
+    "severity": "critical",
+    "location": {
+      "path": "testdata/github/.github/workflows/suppressions.yml",
+      "lines": {
+        "begin": 17
+      }
+    }
+  },
+  {
+    "type": "issue",
+    "check_name": "GL010",
+    "description": "GL010: suppression names unknown rule GL999",
+    "content": {
+      "body": "Fix: add a reason of at least 10 characters after the rule IDs"
+    },
+    "categories": [
+      "Security"
+    ],
+    "fingerprint": "2231be787612362223c40a3336a1ff86",
+    "severity": "minor",
+    "location": {
+      "path": "testdata/github/.github/workflows/suppressions.yml",
+      "lines": {
+        "begin": 20
+      }
+    }
+  },
+  {
+    "type": "issue",
+    "check_name": "GL001",
+    "description": "GL001: Trivy failure is swallowed by `|| true`",
+    "content": {
+      "body": "Fix: remove the \"|| true\" (or equivalent) so a failing scan fails the job"
+    },
+    "categories": [
+      "Security"
+    ],
+    "fingerprint": "2f118c961804d524b148b20d6bce5c4d",
+    "severity": "critical",
+    "location": {
+      "path": "testdata/github/.github/workflows/swallow.yml",
+      "lines": {
+        "begin": 9
+      }
+    }
+  },
+  {
+    "type": "issue",
+    "check_name": "GL001",
+    "description": "GL001: Gitleaks failure is swallowed by `|| echo \"leaks found, continuing\"`",
+    "content": {
+      "body": "Fix: remove the \"|| true\" (or equivalent) so a failing scan fails the job"
+    },
+    "categories": [
+      "Security"
+    ],
+    "fingerprint": "c7720404e9bfba6d62babdf4e783ef63",
+    "severity": "critical",
+    "location": {
+      "path": "testdata/github/.github/workflows/swallow.yml",
+      "lines": {
+        "begin": 12
+      }
+    }
+  },
+  {
+    "type": "issue",
+    "check_name": "GL001",
+    "description": "GL001: Semgrep exit status is inverted with \"!\", which also exempts it from errexit",
+    "content": {
+      "body": "Fix: remove the \"!\" in front of the scanner"
+    },
+    "categories": [
+      "Security"
+    ],
+    "fingerprint": "a6b92b9fa83b375804f3a8a3c0b12d76",
+    "severity": "critical",
+    "location": {
+      "path": "testdata/github/.github/workflows/swallow.yml",
+      "lines": {
+        "begin": 14
+      }
+    }
+  },
+  {
+    "type": "issue",
+    "check_name": "GL001",
+    "description": "GL001: Bandit is on the left of `&& echo \"bandit passed\"` in the middle of the script; bash exempts it from errexit, so a failing scan does not stop the job",
+    "content": {
+      "body": "Fix: run the scanner as its own command, or append \"|| exit 1\" to the list"
+    },
+    "categories": [
+      "Security"
+    ],
+    "fingerprint": "deb8e7843af3468644da0f02ed6ea0f6",
+    "severity": "critical",
+    "location": {
+      "path": "testdata/github/.github/workflows/swallow.yml",
+      "lines": {
+        "begin": 17
+      }
+    }
+  },
+  {
+    "type": "issue",
+    "check_name": "GL001",
+    "description": "GL001: Checkov runs as an if/while condition and no branch exits with an error",
+    "content": {
+      "body": "Fix: add \"exit 1\" to the branch that handles a failed scan"
+    },
+    "categories": [
+      "Security"
+    ],
+    "fingerprint": "f82ea19c0224e5b8b8596face2db1163",
+    "severity": "critical",
+    "location": {
+      "path": "testdata/github/.github/workflows/swallow.yml",
+      "lines": {
+        "begin": 21
+      }
+    }
+  },
+  {
+    "type": "issue",
+    "check_name": "GL001",
+    "description": "GL001: npm audit runs inside a command substitution whose status is discarded by `echo`",
+    "content": {
+      "body": "Fix: run the scanner directly and capture its output with --output instead of $(...)"
+    },
+    "categories": [
+      "Security"
+    ],
+    "fingerprint": "6ed15c075b392d75c8c3e445fa64ff30",
+    "severity": "critical",
+    "location": {
+      "path": "testdata/github/.github/workflows/swallow.yml",
+      "lines": {
+        "begin": 26
+      }
+    }
+  },
+  {
+    "type": "issue",
+    "check_name": "GL001",
+    "description": "GL001: Snyk runs in the background with \"&\", so its exit status is never checked",
+    "content": {
+      "body": "Fix: run the scanner in the foreground, or \"wait\" for it and check its status"
+    },
+    "categories": [
+      "Security"
+    ],
+    "fingerprint": "af489e26978337ec99ad61f5dd6e2dd5",
+    "severity": "critical",
+    "location": {
+      "path": "testdata/github/.github/workflows/swallow.yml",
+      "lines": {
+        "begin": 30
+      }
+    }
+  },
+  {
+    "type": "issue",
+    "check_name": "GL001",
+    "description": "GL001: tfsec failure is swallowed by `|| exit 0`",
+    "content": {
+      "body": "Fix: remove the \"|| true\" (or equivalent) so a failing scan fails the job"
+    },
+    "categories": [
+      "Security"
+    ],
+    "fingerprint": "e856cd3d1ce4ce83100baa0d132e7eff",
+    "severity": "critical",
+    "location": {
+      "path": "testdata/github/.github/workflows/swallow.yml",
+      "lines": {
+        "begin": 33
+      }
+    }
+  },
+  {
+    "type": "issue",
+    "check_name": "GL006",
+    "description": "GL006: Trivy is run with \"--exit-code 0\", which keeps the exit code at 0 when vulnerabilities are found",
+    "content": {
+      "body": "Fix: remove the flag so the scanner exits non-zero on findings"
+    },
+    "categories": [
+      "Security"
+    ],
+    "fingerprint": "7837c4c7b417f915bef3e554d1fb6d5c",
+    "severity": "critical",
+    "location": {
+      "path": "testdata/github/.github/workflows/windows.yml",
+      "lines": {
+        "begin": 8
+      }
+    }
+  },
+  {
+    "type": "issue",
+    "check_name": "GL001",
+    "description": "GL001: Bandit failure is swallowed by `|| Write-Host \"bandit failed\"`",
+    "content": {
+      "body": "Fix: remove the \"|| true\" (or equivalent) so a failing scan fails the job"
+    },
+    "categories": [
+      "Security"
+    ],
+    "fingerprint": "56771d995a4dfc891668632942a72184",
+    "severity": "critical",
+    "location": {
+      "path": "testdata/github/.github/workflows/windows.yml",
+      "lines": {
+        "begin": 10
+      }
+    }
+  }
+]

@@ -1,0 +1,12 @@
+name: reusable
+on: push
+jobs:
+  local-call:
+    uses: ./.github/workflows/reusable-scan.yml
+  remote-call:
+    uses: example-org/shared-workflows/.github/workflows/scan.yml@v1
+  composite:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/scan

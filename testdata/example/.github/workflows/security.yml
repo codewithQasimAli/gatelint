@@ -1,0 +1,23 @@
+name: security
+on: [pull_request]
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Dependency audit
+        run: npm audit --audit-level=high || true
+
+      - name: Container scan
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: myapp:latest
+
+      - name: SAST
+        run: semgrep ci
+        continue-on-error: true
+
+      - name: Secrets
+        uses: gitleaks/gitleaks-action@v2

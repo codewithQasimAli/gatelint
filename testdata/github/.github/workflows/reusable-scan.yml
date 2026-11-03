@@ -1,0 +1,13 @@
+name: reusable-scan
+on:
+  workflow_call:
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target: [api, web]
+    steps:
+      - name: Scan ${{ matrix.target }}
+        run: |
+          grype dir:./${{ matrix.target }} --fail-on high || true
