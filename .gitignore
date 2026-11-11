@@ -9,6 +9,7 @@ dist/
 coverage*.html
 coverage.txt
 *.sarif
+!testdata/golden/*.sarif
 gl-code-quality-report.json
 
 # Field-test clones (never committed)
