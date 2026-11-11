@@ -1,0 +1,2441 @@
+{
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "gatelint",
+          "version": "dev",
+          "informationUri": "https://github.com/codewithQasimAli/gatelint",
+          "rules": [
+            {
+              "id": "GL001",
+              "name": "ScannerFailureSwallowedByTheShell",
+              "shortDescription": {
+                "text": "Scanner failure swallowed by the shell"
+              },
+              "fullDescription": {
+                "text": "The scanner's exit status is discarded by the shell, so a failing scan can never fail the job. The usual culprit is \"|| true\", but \"|| :\", \"|| exit 0\", \"|| echo ...\", a leading \"!\", running the scanner inside $(...) as an argument of another command, running it in the background with \"&\", using it as an if condition without a failing branch, and putting it on the left of \"&&\" in the middle of a script (bash exempts that command from errexit) all have the same effect. The scanner still runs and prints findings, so the job looks protected while it is not. gatelint only reports this when the swallowed command is a known scanner."
+              },
+              "help": {
+                "text": "The scanner's exit status is discarded by the shell, so a failing scan can never fail the job. The usual culprit is \"|| true\", but \"|| :\", \"|| exit 0\", \"|| echo ...\", a leading \"!\", running the scanner inside $(...) as an argument of another command, running it in the background with \"&\", using it as an if condition without a failing branch, and putting it on the left of \"&&\" in the middle of a script (bash exempts that command from errexit) all have the same effect. The scanner still runs and prints findings, so the job looks protected while it is not. gatelint only reports this when the swallowed command is a known scanner.\n\nFix: remove the \"|| true\" (or equivalent) so a failing scan fails the job",
+                "markdown": "The scanner's exit status is discarded by the shell, so a failing scan can never fail the job. The usual culprit is \"|| true\", but \"|| :\", \"|| exit 0\", \"|| echo ...\", a leading \"!\", running the scanner inside $(...) as an argument of another command, running it in the background with \"&\", using it as an if condition without a failing branch, and putting it on the left of \"&&\" in the middle of a script (bash exempts that command from errexit) all have the same effect. The scanner still runs and prints findings, so the job looks protected while it is not. gatelint only reports this when the swallowed command is a known scanner.\n\n**Before**\n\n```yaml\n- name: Scan image\n  run: trivy image --exit-code 1 myapp:latest || true\n```\n\n**After**\n\n```yaml\n- name: Scan image\n  run: trivy image --exit-code 1 myapp:latest\n```"
+              },
+              "helpUri": "https://github.com/codewithQasimAli/gatelint/blob/main/docs/rules/GL001.md",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "ci"
+                ],
+                "precision": "high",
+                "security-severity": "8.0"
+              }
+            },
+            {
+              "id": "GL002",
+              "name": "ErrexitDisabledBeforeAScanner",
+              "shortDescription": {
+                "text": "errexit disabled before a scanner"
+              },
+              "fullDescription": {
+                "text": "\"set +e\" (or a custom shell started without -e, such as \"shell: bash {0}\") turns off errexit, so the script keeps going after a command fails. When a scanner runs while errexit is off and it is not the last command of the script, its failure is lost: the step's exit status is that of whatever runs last. gatelint does not report the pattern when the next command reads $? (for example \"rc=$?\") or when the scanner is the final command, because then the status still reaches the runner."
+              },
+              "help": {
+                "text": "\"set +e\" (or a custom shell started without -e, such as \"shell: bash {0}\") turns off errexit, so the script keeps going after a command fails. When a scanner runs while errexit is off and it is not the last command of the script, its failure is lost: the step's exit status is that of whatever runs last. gatelint does not report the pattern when the next command reads $? (for example \"rc=$?\") or when the scanner is the final command, because then the status still reaches the runner.\n\nFix: remove \"set +e\", or capture the status with rc=$? and exit with it",
+                "markdown": "\"set +e\" (or a custom shell started without -e, such as \"shell: bash {0}\") turns off errexit, so the script keeps going after a command fails. When a scanner runs while errexit is off and it is not the last command of the script, its failure is lost: the step's exit status is that of whatever runs last. gatelint does not report the pattern when the next command reads $? (for example \"rc=$?\") or when the scanner is the final command, because then the status still reaches the runner.\n\n**Before**\n\n```yaml\n- name: Scan\n  run: |\n    set +e\n    gitleaks detect --source .\n    echo \"scan finished\"\n```\n\n**After**\n\n```yaml\n- name: Scan\n  run: |\n    gitleaks detect --source .\n    echo \"scan finished\"\n```"
+              },
+              "helpUri": "https://github.com/codewithQasimAli/gatelint/blob/main/docs/rules/GL002.md",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "ci"
+                ],
+                "precision": "high",
+                "security-severity": "8.0"
+              }
+            },
+            {
+              "id": "GL003",
+              "name": "ScannerPipedWithoutPipefail",
+              "shortDescription": {
+                "text": "Scanner piped without pipefail"
+              },
+              "fullDescription": {
+                "text": "Without pipefail, a pipeline's exit status is that of its last command. \"trivy image app | tee report.txt\" therefore succeeds whenever tee succeeds, whatever Trivy found. On GitHub Actions the default shell for Linux and macOS runners when \"shell:\" is omitted is \"bash -e {0}\", which does not set pipefail; \"shell: bash\" runs \"bash --noprofile --norc -eo pipefail {0}\" and does. \"shell: sh\" runs \"sh -e {0}\" without pipefail. GitLab Runner enables pipefail where the shell supports it, so on GitLab this rule only fires after an explicit \"set +o pipefail\"."
+              },
+              "help": {
+                "text": "Without pipefail, a pipeline's exit status is that of its last command. \"trivy image app | tee report.txt\" therefore succeeds whenever tee succeeds, whatever Trivy found. On GitHub Actions the default shell for Linux and macOS runners when \"shell:\" is omitted is \"bash -e {0}\", which does not set pipefail; \"shell: bash\" runs \"bash --noprofile --norc -eo pipefail {0}\" and does. \"shell: sh\" runs \"sh -e {0}\" without pipefail. GitLab Runner enables pipefail where the shell supports it, so on GitLab this rule only fires after an explicit \"set +o pipefail\".\n\nFix: set \"shell: bash\" on the step (it adds -o pipefail) or add \"set -o pipefail\" before the pipeline",
+                "markdown": "Without pipefail, a pipeline's exit status is that of its last command. \"trivy image app | tee report.txt\" therefore succeeds whenever tee succeeds, whatever Trivy found. On GitHub Actions the default shell for Linux and macOS runners when \"shell:\" is omitted is \"bash -e {0}\", which does not set pipefail; \"shell: bash\" runs \"bash --noprofile --norc -eo pipefail {0}\" and does. \"shell: sh\" runs \"sh -e {0}\" without pipefail. GitLab Runner enables pipefail where the shell supports it, so on GitLab this rule only fires after an explicit \"set +o pipefail\".\n\n**Before**\n\n```yaml\n- name: Scan\n  run: trivy fs --exit-code 1 . | tee trivy.txt\n```\n\n**After**\n\n```yaml\n- name: Scan\n  shell: bash\n  run: trivy fs --exit-code 1 . | tee trivy.txt\n```"
+              },
+              "helpUri": "https://github.com/codewithQasimAli/gatelint/blob/main/docs/rules/GL003.md",
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "ci"
+                ],
+                "precision": "high",
+                "security-severity": "5.5"
+              }
+            },
+            {
+              "id": "GL004",
+              "name": "ContinueOnErrorOnAScannerStepOrJob",
+              "shortDescription": {
+                "text": "continue-on-error on a scanner step or job"
+              },
+              "fullDescription": {
+                "text": "\"continue-on-error: true\" tells GitHub Actions to treat a failed step (or job) as a success. On a scanner step this keeps the workflow green whatever the scanner finds; the only trace is a warning annotation that is easy to miss. When the value is an expression such as \"${{ matrix.experimental }}\", gatelint reports it at medium severity as conditional, because the gate is only disabled for some runs."
+              },
+              "help": {
+                "text": "\"continue-on-error: true\" tells GitHub Actions to treat a failed step (or job) as a success. On a scanner step this keeps the workflow green whatever the scanner finds; the only trace is a warning annotation that is easy to miss. When the value is an expression such as \"${{ matrix.experimental }}\", gatelint reports it at medium severity as conditional, because the gate is only disabled for some runs.\n\nFix: remove continue-on-error, or move non-blocking experiments to a separate job",
+                "markdown": "\"continue-on-error: true\" tells GitHub Actions to treat a failed step (or job) as a success. On a scanner step this keeps the workflow green whatever the scanner finds; the only trace is a warning annotation that is easy to miss. When the value is an expression such as \"${{ matrix.experimental }}\", gatelint reports it at medium severity as conditional, because the gate is only disabled for some runs.\n\n**Before**\n\n```yaml\n- name: Semgrep\n  run: semgrep ci\n  continue-on-error: true\n```\n\n**After**\n\n```yaml\n- name: Semgrep\n  run: semgrep ci\n```"
+              },
+              "helpUri": "https://github.com/codewithQasimAli/gatelint/blob/main/docs/rules/GL004.md",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "ci"
+                ],
+                "precision": "high",
+                "security-severity": "8.0"
+              }
+            },
+            {
+              "id": "GL005",
+              "name": "ScannerJobAllowedToFail",
+              "shortDescription": {
+                "text": "Scanner job allowed to fail"
+              },
+              "fullDescription": {
+                "text": "\"allow_failure: true\" lets a GitLab job fail without failing the pipeline; the merge request shows a warning icon and can still be merged. \"allow_failure: exit_codes\" does the same for specific exit codes, and when those include the scanner's failure code (1 for most tools, 2 for Grype with --fail-on, 183 for TruffleHog, or the value given to --exit-code) the scan can never block the pipeline. The same applies to an allow_failure inside rules: when it covers every rule that runs the job (reported as conditional when only some rules set it), and to scanners placed in after_script, whose exit status GitLab ignores."
+              },
+              "help": {
+                "text": "\"allow_failure: true\" lets a GitLab job fail without failing the pipeline; the merge request shows a warning icon and can still be merged. \"allow_failure: exit_codes\" does the same for specific exit codes, and when those include the scanner's failure code (1 for most tools, 2 for Grype with --fail-on, 183 for TruffleHog, or the value given to --exit-code) the scan can never block the pipeline. The same applies to an allow_failure inside rules: when it covers every rule that runs the job (reported as conditional when only some rules set it), and to scanners placed in after_script, whose exit status GitLab ignores.\n\nFix: remove allow_failure from the scanner job (or drop the scanner's failure code from exit_codes)",
+                "markdown": "\"allow_failure: true\" lets a GitLab job fail without failing the pipeline; the merge request shows a warning icon and can still be merged. \"allow_failure: exit_codes\" does the same for specific exit codes, and when those include the scanner's failure code (1 for most tools, 2 for Grype with --fail-on, 183 for TruffleHog, or the value given to --exit-code) the scan can never block the pipeline. The same applies to an allow_failure inside rules: when it covers every rule that runs the job (reported as conditional when only some rules set it), and to scanners placed in after_script, whose exit status GitLab ignores.\n\n**Before**\n\n```yaml\ntrivy:\n  stage: test\n  script:\n    - trivy fs --exit-code 1 .\n  allow_failure: true\n```\n\n**After**\n\n```yaml\ntrivy:\n  stage: test\n  script:\n    - trivy fs --exit-code 1 .\n```"
+              },
+              "helpUri": "https://github.com/codewithQasimAli/gatelint/blob/main/docs/rules/GL005.md",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "ci"
+                ],
+                "precision": "high",
+                "security-severity": "8.0"
+              }
+            },
+            {
+              "id": "GL006",
+              "name": "NeuteringFlagOnTheScannerCommandLine",
+              "shortDescription": {
+                "text": "Neutering flag on the scanner command line"
+              },
+              "fullDescription": {
+                "text": "Many scanners have a flag that keeps the exit code at 0 whatever they find: Bandit's --exit-zero, Checkov's and tfsec's --soft-fail, gosec's -no-fail, \"--exit-code 0\" for Trivy and Gitleaks, \"npm audit --audit-level=none\". The same applies to the equivalent environment variables, such as TRIVY_EXIT_CODE=0. The flag is often added \"temporarily\" to get a pipeline green and never removed. gatelint knows each scanner's flags from its catalog, which can be extended in .gatelint.yml."
+              },
+              "help": {
+                "text": "Many scanners have a flag that keeps the exit code at 0 whatever they find: Bandit's --exit-zero, Checkov's and tfsec's --soft-fail, gosec's -no-fail, \"--exit-code 0\" for Trivy and Gitleaks, \"npm audit --audit-level=none\". The same applies to the equivalent environment variables, such as TRIVY_EXIT_CODE=0. The flag is often added \"temporarily\" to get a pipeline green and never removed. gatelint knows each scanner's flags from its catalog, which can be extended in .gatelint.yml.\n\nFix: remove the flag so the scanner exits non-zero on findings",
+                "markdown": "Many scanners have a flag that keeps the exit code at 0 whatever they find: Bandit's --exit-zero, Checkov's and tfsec's --soft-fail, gosec's -no-fail, \"--exit-code 0\" for Trivy and Gitleaks, \"npm audit --audit-level=none\". The same applies to the equivalent environment variables, such as TRIVY_EXIT_CODE=0. The flag is often added \"temporarily\" to get a pipeline green and never removed. gatelint knows each scanner's flags from its catalog, which can be extended in .gatelint.yml.\n\n**Before**\n\n```yaml\nscript:\n  - bandit -r src --exit-zero\n```\n\n**After**\n\n```yaml\nscript:\n  - bandit -r src\n```"
+              },
+              "helpUri": "https://github.com/codewithQasimAli/gatelint/blob/main/docs/rules/GL006.md",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "ci"
+                ],
+                "precision": "high",
+                "security-severity": "8.0"
+              }
+            },
+            {
+              "id": "GL007",
+              "name": "ScannerDoesNotGateByDefault",
+              "shortDescription": {
+                "text": "Scanner does not gate by default"
+              },
+              "fullDescription": {
+                "text": "Some scanners report findings but exit 0 unless asked to fail: Trivy needs --exit-code 1, Grype needs --fail-on, \"semgrep scan\" needs --error, TruffleHog needs --fail, and aquasecurity/trivy-action needs exit-code set to a non-zero value. Without the gating option the scan is informational only, which is easy to miss because the job log is full of findings. \"snyk monitor\" never fails on vulnerabilities and is reported at info severity; use \"snyk test\" to gate. When the gating option comes from a configuration file or an expression gatelint cannot evaluate, the scanner is listed as \"unknown\" in the coverage summary instead."
+              },
+              "help": {
+                "text": "Some scanners report findings but exit 0 unless asked to fail: Trivy needs --exit-code 1, Grype needs --fail-on, \"semgrep scan\" needs --error, TruffleHog needs --fail, and aquasecurity/trivy-action needs exit-code set to a non-zero value. Without the gating option the scan is informational only, which is easy to miss because the job log is full of findings. \"snyk monitor\" never fails on vulnerabilities and is reported at info severity; use \"snyk test\" to gate. When the gating option comes from a configuration file or an expression gatelint cannot evaluate, the scanner is listed as \"unknown\" in the coverage summary instead.\n\nFix: add the scanner's gating option so findings fail the build",
+                "markdown": "Some scanners report findings but exit 0 unless asked to fail: Trivy needs --exit-code 1, Grype needs --fail-on, \"semgrep scan\" needs --error, TruffleHog needs --fail, and aquasecurity/trivy-action needs exit-code set to a non-zero value. Without the gating option the scan is informational only, which is easy to miss because the job log is full of findings. \"snyk monitor\" never fails on vulnerabilities and is reported at info severity; use \"snyk test\" to gate. When the gating option comes from a configuration file or an expression gatelint cannot evaluate, the scanner is listed as \"unknown\" in the coverage summary instead.\n\n**Before**\n\n```yaml\n- name: Trivy\n  uses: aquasecurity/trivy-action@0.28.0\n  with:\n    scan-type: fs\n```\n\n**After**\n\n```yaml\n- name: Trivy\n  uses: aquasecurity/trivy-action@0.28.0\n  with:\n    scan-type: fs\n    exit-code: '1'\n```"
+              },
+              "helpUri": "https://github.com/codewithQasimAli/gatelint/blob/main/docs/rules/GL007.md",
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "ci"
+                ],
+                "precision": "high",
+                "security-severity": "5.5"
+              }
+            },
+            {
+              "id": "GL008",
+              "name": "NeuteringInputOnAScannerAction",
+              "shortDescription": {
+                "text": "Neutering input on a scanner action"
+              },
+              "fullDescription": {
+                "text": "Scanner actions expose inputs that keep the step green whatever is found: aquasecurity/trivy-action with exit-code: '0', anchore/scan-action with fail-build: false, bridgecrewio/checkov-action and aquasecurity/tfsec-action with soft_fail: true, pypa/gh-action-pip-audit with internal-be-careful-allow-failure: true, and neutering flags passed through an args input (for example securego/gosec with args: -no-fail). These inputs are usually added to unblock a release and then forgotten."
+              },
+              "help": {
+                "text": "Scanner actions expose inputs that keep the step green whatever is found: aquasecurity/trivy-action with exit-code: '0', anchore/scan-action with fail-build: false, bridgecrewio/checkov-action and aquasecurity/tfsec-action with soft_fail: true, pypa/gh-action-pip-audit with internal-be-careful-allow-failure: true, and neutering flags passed through an args input (for example securego/gosec with args: -no-fail). These inputs are usually added to unblock a release and then forgotten.\n\nFix: remove the input (or set it to its gating value) so findings fail the step",
+                "markdown": "Scanner actions expose inputs that keep the step green whatever is found: aquasecurity/trivy-action with exit-code: '0', anchore/scan-action with fail-build: false, bridgecrewio/checkov-action and aquasecurity/tfsec-action with soft_fail: true, pypa/gh-action-pip-audit with internal-be-careful-allow-failure: true, and neutering flags passed through an args input (for example securego/gosec with args: -no-fail). These inputs are usually added to unblock a release and then forgotten.\n\n**Before**\n\n```yaml\n- uses: anchore/scan-action@v6\n  with:\n    image: myapp:latest\n    fail-build: false\n```\n\n**After**\n\n```yaml\n- uses: anchore/scan-action@v6\n  with:\n    image: myapp:latest\n    severity-cutoff: high\n```"
+              },
+              "helpUri": "https://github.com/codewithQasimAli/gatelint/blob/main/docs/rules/GL008.md",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "ci"
+                ],
+                "precision": "high",
+                "security-severity": "8.0"
+              }
+            },
+            {
+              "id": "GL009",
+              "name": "ScannerDisabled",
+              "shortDescription": {
+                "text": "Scanner disabled"
+              },
+              "fullDescription": {
+                "text": "The scanner is configured but never runs automatically, so it cannot gate anything. On GitHub Actions this is \"if: false\" or \"if: ${{ false }}\" on the step or job. On GitLab CI it is \"when: never\", \"when: manual\" (a manual job does not run unless someone starts it, and is allowed to fail by default), rules: that always resolve to never or manual, or a security template disabled with SAST_DISABLED, SECRET_DETECTION_DISABLED, DEPENDENCY_SCANNING_DISABLED, CONTAINER_SCANNING_DISABLED or DAST_DISABLED set to \"true\". Other rules stay quiet for disabled scanners, since the scanner does not run at all."
+              },
+              "help": {
+                "text": "The scanner is configured but never runs automatically, so it cannot gate anything. On GitHub Actions this is \"if: false\" or \"if: ${{ false }}\" on the step or job. On GitLab CI it is \"when: never\", \"when: manual\" (a manual job does not run unless someone starts it, and is allowed to fail by default), rules: that always resolve to never or manual, or a security template disabled with SAST_DISABLED, SECRET_DETECTION_DISABLED, DEPENDENCY_SCANNING_DISABLED, CONTAINER_SCANNING_DISABLED or DAST_DISABLED set to \"true\". Other rules stay quiet for disabled scanners, since the scanner does not run at all.\n\nFix: remove the condition that disables the scanner",
+                "markdown": "The scanner is configured but never runs automatically, so it cannot gate anything. On GitHub Actions this is \"if: false\" or \"if: ${{ false }}\" on the step or job. On GitLab CI it is \"when: never\", \"when: manual\" (a manual job does not run unless someone starts it, and is allowed to fail by default), rules: that always resolve to never or manual, or a security template disabled with SAST_DISABLED, SECRET_DETECTION_DISABLED, DEPENDENCY_SCANNING_DISABLED, CONTAINER_SCANNING_DISABLED or DAST_DISABLED set to \"true\". Other rules stay quiet for disabled scanners, since the scanner does not run at all.\n\n**Before**\n\n```yaml\ninclude:\n  - template: Jobs/Secret-Detection.gitlab-ci.yml\nvariables:\n  SECRET_DETECTION_DISABLED: \"true\"\n```\n\n**After**\n\n```yaml\ninclude:\n  - template: Jobs/Secret-Detection.gitlab-ci.yml\n```"
+              },
+              "helpUri": "https://github.com/codewithQasimAli/gatelint/blob/main/docs/rules/GL009.md",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "ci"
+                ],
+                "precision": "high",
+                "security-severity": "8.0"
+              }
+            },
+            {
+              "id": "GL010",
+              "name": "SuppressionWithoutAReason",
+              "shortDescription": {
+                "text": "Suppression without a reason"
+              },
+              "fullDescription": {
+                "text": "A \"# gatelint:ignore\" comment must name the rule IDs it suppresses and give a reason of at least 10 characters, so reviewers can tell a deliberate exception from a silenced warning. A suppression without a valid reason is reported by this rule and does not suppress anything; a suppression naming an unknown rule ID is reported as well. GL010 findings cannot themselves be suppressed."
+              },
+              "help": {
+                "text": "A \"# gatelint:ignore\" comment must name the rule IDs it suppresses and give a reason of at least 10 characters, so reviewers can tell a deliberate exception from a silenced warning. A suppression without a valid reason is reported by this rule and does not suppress anything; a suppression naming an unknown rule ID is reported as well. GL010 findings cannot themselves be suppressed.\n\nFix: add a reason of at least 10 characters after the rule IDs",
+                "markdown": "A \"# gatelint:ignore\" comment must name the rule IDs it suppresses and give a reason of at least 10 characters, so reviewers can tell a deliberate exception from a silenced warning. A suppression without a valid reason is reported by this rule and does not suppress anything; a suppression naming an unknown rule ID is reported as well. GL010 findings cannot themselves be suppressed.\n\n**Before**\n\n```yaml\n# gatelint:ignore GL004\ncontinue-on-error: true\n```\n\n**After**\n\n```yaml\n# gatelint:ignore GL004 nightly job only reports to the dashboard; the PR gate is in ci.yml\ncontinue-on-error: true\n```"
+              },
+              "helpUri": "https://github.com/codewithQasimAli/gatelint/blob/main/docs/rules/GL010.md",
+              "defaultConfiguration": {
+                "level": "note"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "ci"
+                ],
+                "precision": "high",
+                "security-severity": "3.0"
+              }
+            }
+          ]
+        }
+      },
+      "invocations": [
+        {
+          "executionSuccessful": true,
+          "toolExecutionNotifications": [
+            {
+              "level": "note",
+              "message": {
+                "text": "job \"remote-call\" calls the remote reusable workflow example-org/shared-workflows/.github/workflows/scan.yml@v1, which is out of scope"
+              },
+              "locations": [
+                {
+                  "physicalLocation": {
+                    "artifactLocation": {
+                      "uri": "testdata/github/.github/workflows/reusable.yml",
+                      "uriBaseId": "%SRCROOT%"
+                    },
+                    "region": {
+                      "startLine": 7
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "results": [
+        {
+          "ruleId": "GL006",
+          "ruleIndex": 5,
+          "level": "error",
+          "message": {
+            "text": "Bandit is run with \"--exit-zero\", which exits 0 even when issues are found"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "testdata/github/.github/actions/scan/action.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 8,
+                  "startColumn": 26
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "gatelintFingerprint/v1": "d655253acb9b27c03777480c2d624942"
+          },
+          "properties": {
+            "severity": "high",
+            "confidence": "high",
+            "scanner": "Bandit",
+            "job": "Security scan",
+            "step": "Bandit",
+            "fix": "remove the flag so the scanner exits non-zero on findings"
+          }
+        },
+        {
+          "ruleId": "GL001",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "pip-audit failure is swallowed by `|| echo \"pip-audit failed\"`"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "testdata/github/.github/actions/scan/action.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 12,
+                  "startColumn": 9
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "gatelintFingerprint/v1": "4283e856d684b1c9f0911db0bf987da4"
+          },
+          "properties": {
+            "severity": "high",
+            "confidence": "high",
+            "scanner": "pip-audit",
+            "job": "Security scan",
+            "step": "pip-audit",
+            "fix": "remove the \"|| true\" (or equivalent) so a failing scan fails the job"
+          }
+        },
+        {
+          "ruleId": "GL008",
+          "ruleIndex": 7,
+          "level": "error",
+          "message": {
+            "text": "aquasecurity/trivy-action input \"exit-code: 0\" makes the action exit 0 when vulnerabilities are found"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "testdata/github/.github/workflows/actions.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 10,
+                  "startColumn": 11
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "gatelintFingerprint/v1": "9348d0f9dd902986b0b79d3b7dd097a5"
+          },
+          "properties": {
+            "severity": "high",
+            "confidence": "high",
+            "scanner": "Trivy",
+            "job": "neutered",
+            "step": "aquasecurity/trivy-action@0.28.0",
+            "fix": "remove the input (or set it to its gating value) so findings fail the step"
+          }
+        },
+        {
+          "ruleId": "GL008",
+          "ruleIndex": 7,
+          "level": "error",
+          "message": {
+            "text": "anchore/scan-action input \"fail-build: false\" keeps the step green whatever Grype finds"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "testdata/github/.github/workflows/actions.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 14,
+                  "startColumn": 11
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "gatelintFingerprint/v1": "4a410006de54b2b9109e7e853a6e1a45"
+          },
+          "properties": {
+            "severity": "high",
+            "confidence": "high",
+            "scanner": "Grype",
+            "job": "neutered",
+            "step": "anchore/scan-action@v6",
+            "fix": "remove the input (or set it to its gating value) so findings fail the step"
+          }
+        },
+        {
+          "ruleId": "GL008",
+          "ruleIndex": 7,
+          "level": "error",
+          "message": {
+            "text": "bridgecrewio/checkov-action input \"soft_fail: true\" makes Checkov exit 0 when checks fail"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "testdata/github/.github/workflows/actions.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 18,
+                  "startColumn": 11
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "gatelintFingerprint/v1": "be48699ed6c07cbf0813d811366156bc"
+          },
+          "properties": {
+            "severity": "high",
+            "confidence": "high",
+            "scanner": "Checkov",
+            "job": "neutered",
+            "step": "bridgecrewio/checkov-action@v12",
+            "fix": "remove the input (or set it to its gating value) so findings fail the step"
+          }
+        },
+        {
+          "ruleId": "GL008",
+          "ruleIndex": 7,
+          "level": "error",
+          "message": {
+            "text": "pypa/gh-action-pip-audit input \"internal-be-careful-allow-failure: true\" keeps the step green when vulnerabilities are found"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "testdata/github/.github/workflows/actions.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 22,
+                  "startColumn": 11
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "gatelintFingerprint/v1": "e2768794ecac16445ee4a464c046eccd"
+          },
+          "properties": {
+            "severity": "high",
+            "confidence": "high",
+            "scanner": "pip-audit",
+            "job": "neutered",
+            "step": "pypa/gh-action-pip-audit@v1.1.0",
+            "fix": "remove the input (or set it to its gating value) so findings fail the step"
+          }
+        },
+        {
+          "ruleId": "GL008",
+          "ruleIndex": 7,
+          "level": "error",
+          "message": {
+            "text": "securego/gosec input args passes \"-no-fail\", which exits 0 even when issues are found"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "testdata/github/.github/workflows/actions.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 25,
+                  "startColumn": 11
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "gatelintFingerprint/v1": "fa720af3b4acb5c65ce3623e716ecec5"
+          },
+          "properties": {
+            "severity": "high",
+            "confidence": "high",
+            "scanner": "gosec",
+            "job": "neutered",
+            "step": "securego/gosec@v2.22.0",
+            "fix": "remove the input (or set it to its gating value) so findings fail the step"
+          }
+        },
+        {
+          "ruleId": "GL008",
+          "ruleIndex": 7,
+          "level": "error",
+          "message": {
+            "text": "aquasecurity/tfsec-action input \"soft_fail: true\" makes tfsec exit 0 when checks fail"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "testdata/github/.github/workflows/actions.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 28,
+                  "startColumn": 11
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "gatelintFingerprint/v1": "2d2e1f54fd397d0a8ea95ba72a582e97"
+          },
+          "properties": {
+            "severity": "high",
+            "confidence": "high",
+            "scanner": "tfsec",
+            "job": "neutered",
+            "step": "aquasecurity/tfsec-action@v1.0.3",
+            "fix": "remove the input (or set it to its gating value) so findings fail the step"
+          }
+        },
+        {
+          "ruleId": "GL007",
+          "ruleIndex": 6,
+          "level": "note",
+          "message": {
+            "text": "Snyk: snyk monitor uploads a snapshot and never fails on vulnerabilities"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "testdata/github/.github/workflows/actions.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 29,
+                  "startColumn": 9
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "gatelintFingerprint/v1": "a29810cf98a535284256771d8201f41f"
+          },
+          "properties": {
+            "severity": "info",
+            "confidence": "high",
+            "scanner": "Snyk",
+            "job": "neutered",
+            "step": "snyk/actions/node@master",
+            "fix": "add a separate command that fails on findings (for Snyk, \"snyk test\")"
+          }
+        },
+        {
+          "ruleId": "GL004",
+          "ruleIndex": 3,
+          "level": "error",
+          "message": {
+            "text": "Semgrep runs in a step with continue-on-error: true, so a failing scan does not fail the workflow"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "testdata/github/.github/workflows/continue-on-error.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 9,
+                  "startColumn": 9
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "gatelintFingerprint/v1": "21b839cef96c16b797942d2227de3834"
+          },
+          "properties": {
+            "severity": "high",
+            "confidence": "high",
+            "scanner": "Semgrep",
+            "job": "step-level",
+            "step": "Semgrep",
+            "fix": "remove continue-on-error, or move non-blocking experiments to a separate job"
+          }
+        },
+        {
+          "ruleId": "GL004",
+          "ruleIndex": 3,
+          "level": "warning",
+          "message": {
+            "text": "Gitleaks runs in a step with continue-on-error: ${{ matrix.experimental }}, which disables the gate whenever the expression is true"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "testdata/github/.github/workflows/continue-on-error.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 12,
+                  "startColumn": 9
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "gatelintFingerprint/v1": "92e520307fc5a829cda670ddea981812"
+          },
+          "properties": {
+            "severity": "medium",
+            "confidence": "high",
+            "scanner": "Gitleaks",
+            "job": "step-level",
+            "step": "Gitleaks",
+            "conditional": true,
+            "fix": "remove continue-on-error, or move non-blocking experiments to a separate job"
+          }
+        },
+        {
+          "ruleId": "GL004",
+          "ruleIndex": 3,
+          "level": "error",
+          "message": {
+            "text": "Checkov runs in a job with continue-on-error: true, so a failing scan does not fail the workflow"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "testdata/github/.github/workflows/continue-on-error.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 21,
+                  "startColumn": 5
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "gatelintFingerprint/v1": "6c0f5dd03aaf01314986519609bcba5f"
+          },
+          "properties": {
+            "severity": "high",
+            "confidence": "high",
+            "scanner": "Checkov",
+            "job": "job-level",
+            "step": "Checkov",
+            "fix": "remove continue-on-error, or move non-blocking experiments to a separate job"
+          }
+        },
+        {
+          "ruleId": "GL001",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "Bandit failure is swallowed by `|| true`"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "testdata/github/.github/workflows/crlf.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 10,
+                  "startColumn": 11
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "gatelintFingerprint/v1": "4a08ef427d406b46c78a6d64aeb465a5"
+          },
+          "properties": {
+            "severity": "high",
+            "confidence": "high",
+            "scanner": "Bandit",
+            "job": "scan",
+            "step": "CRLF line endings",
+            "fix": "remove the \"|| true\" (or equivalent) so a failing scan fails the job"
+          }
+        },
+        {
+          "ruleId": "GL007",
+          "ruleIndex": 6,
+          "level": "warning",
+          "message": {
+            "text": "Trivy exits 0 when it finds issues and no gating option is set"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "testdata/github/.github/workflows/defaults.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 8,
+                  "startColumn": 14
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "gatelintFingerprint/v1": "bd11b5672168f8b5f7b7922dcd284583"
+          },
+          "properties": {
+            "severity": "medium",
+            "confidence": "high",
+            "scanner": "Trivy",
+            "job": "non-gating",
+            "step": "Trivy without exit code",
+            "fix": "add --exit-code 1 so findings fail the build"
+          }
+        },
+        {
+          "ruleId": "GL007",
+          "ruleIndex": 6,
+          "level": "warning",
+          "message": {
+            "text": "Grype exits 0 when it finds issues and no gating option is set"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "testdata/github/.github/workflows/defaults.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 10,
+                  "startColumn": 14
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "gatelintFingerprint/v1": "adbf708c17e79fa0715c841ef62c7681"
+          },
+          "properties": {
+            "severity": "medium",
+            "confidence": "high",
+            "scanner": "Grype",
+            "job": "non-gating",
+            "step": "Grype without fail-on",
+            "fix": "add --fail-on high so findings fail the build"
+          }
+        },
+        {
+          "ruleId": "GL007",
+          "ruleIndex": 6,
+          "level": "warning",
+          "message": {
+            "text": "Semgrep exits 0 when it finds issues and no gating option is set"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "testdata/github/.github/workflows/defaults.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 12,
+                  "startColumn": 14
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "gatelintFingerprint/v1": "f6174a5705a5e6482a86d6d5ee131d7c"
+          },
+          "properties": {
+            "severity": "medium",
+            "confidence": "high",
+            "scanner": "Semgrep",
+            "job": "non-gating",
+            "step": "Semgrep scan without error",
+            "fix": "add --error so findings fail the build"
+          }
+        },
+        {
+          "ruleId": "GL007",
+          "ruleIndex": 6,
+          "level": "warning",
+          "message": {
+            "text": "TruffleHog exits 0 when it finds issues and no gating option is set"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "testdata/github/.github/workflows/defaults.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 14,
+                  "startColumn": 14
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "gatelintFingerprint/v1": "7cff5d8bc354de8a25733f9d8df29733"
+          },
+          "properties": {
+            "severity": "medium",
+            "confidence": "high",
+            "scanner": "TruffleHog",
+            "job": "non-gating",
+            "step": "TruffleHog without fail",
+            "fix": "add --fail so findings fail the build"
+          }
+        },
+        {
+          "ruleId": "GL007",
+          "ruleIndex": 6,
+          "level": "warning",
+          "message": {
+            "text": "aquasecurity/trivy-action@0.28.0 exits 0 when it finds issues and no gating option is set"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "testdata/github/.github/workflows/defaults.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 16,
+                  "startColumn": 9
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "gatelintFingerprint/v1": "677f3d6b0e79854c8b1696d8d39407e3"
+          },
+          "properties": {
+            "severity": "medium",
+            "confidence": "high",
+            "scanner": "Trivy",
+            "job": "non-gating",
+            "step": "Trivy action without exit-code",
+            "fix": "set exit-code: '1' on the step so findings fail the build"
+          }
+        },
+        {
+          "ruleId": "GL007",
+          "ruleIndex": 6,
+          "level": "note",
+          "message": {
+            "text": "Snyk: snyk monitor uploads a snapshot and never fails on vulnerabilities"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "testdata/github/.github/workflows/defaults.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 20,
+                  "startColumn": 18
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "gatelintFingerprint/v1": "a6108bb93cacd699062de09397e3c08f"
+          },
+          "properties": {
+            "severity": "info",
+            "confidence": "high",
+            "scanner": "Snyk",
+            "job": "non-gating",
+            "step": "Snyk monitor",
+            "fix": "add a separate command that fails on findings (for Snyk, \"snyk test\")"
+          }
+        },
+        {
+          "ruleId": "GL009",
+          "ruleIndex": 8,
+          "level": "error",
+          "message": {
+            "text": "Semgrep step has if: false and never runs"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "testdata/github/.github/workflows/disabled.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 8,
+                  "startColumn": 9
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "gatelintFingerprint/v1": "8e6865a646ad07873671a843d9e358e2"
+          },
+          "properties": {
+            "severity": "high",
+            "confidence": "high",
+            "scanner": "Semgrep",
+            "job": "scan",
+            "step": "Semgrep turned off",
+            "fix": "remove the condition that disables the scanner"
+          }
+        },
+        {
+          "ruleId": "GL009",
+          "ruleIndex": 8,
+          "level": "error",
+          "message": {
+            "text": "Gitleaks step has if: ${{ false }} and never runs"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "testdata/github/.github/workflows/disabled.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 11,
+                  "startColumn": 9
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "gatelintFingerprint/v1": "cffc2ded3f7fbb97e8e3a405c5c9d19f"
+          },
+          "properties": {
+            "severity": "high",
+            "confidence": "high",
+            "scanner": "Gitleaks",
+            "job": "scan",
+            "step": "Gitleaks turned off",
+            "fix": "remove the condition that disables the scanner"
+          }
+        },
+        {
+          "ruleId": "GL009",
+          "ruleIndex": 8,
+          "level": "error",
+          "message": {
+            "text": "Trivy runs in job \"off\", which has if: ${{ false && github.event_name == 'push' }} and never runs"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "testdata/github/.github/workflows/disabled.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 17,
+                  "startColumn": 5
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "gatelintFingerprint/v1": "ee7bd1eda34265e472d3b099f0eac292"
+          },
+          "properties": {
+            "severity": "high",
+            "confidence": "high",
+            "scanner": "Trivy",
+            "job": "off",
+            "step": "run: trivy fs --exit-code 1 . || true",
+            "fix": "remove the condition that disables the scanner"
+          }
+        },
+        {
+          "ruleId": "GL002",
+          "ruleIndex": 1,
+          "level": "error",
+          "message": {
+            "text": "Gitleaks runs while errexit is off (\"set +e\" on line 9 disables it) and is not the last command, so a failing scan does not fail the job"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "testdata/github/.github/workflows/errexit.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 10,
+                  "startColumn": 11
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "gatelintFingerprint/v1": "796211a75502fe2f7f0122cb0996af7c"
+          },
+          "properties": {
+            "severity": "high",
+            "confidence": "high",
+            "scanner": "Gitleaks",
+            "job": "scan",
+            "step": "set +e before gitleaks",
+            "fix": "remove \"set +e\", or capture the status with rc=$? and exit with it"
+          }
+        },
+        {
+          "ruleId": "GL002",
+          "ruleIndex": 1,
+          "level": "error",
+          "message": {
+            "text": "Bandit runs while errexit is off (the shell \"bash {0}\" runs without -e) and is not the last command, so a failing scan does not fail the job"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "testdata/github/.github/workflows/errexit.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 15,
+                  "startColumn": 11
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "gatelintFingerprint/v1": "2872a3b6af9246b97d746d6775ca8c7f"
+          },
+          "properties": {
+            "severity": "high",
+            "confidence": "high",
+            "scanner": "Bandit",
+            "job": "scan",
+            "step": "Shell without -e",
+            "fix": "remove \"set +e\", or capture the status with rc=$? and exit with it"
+          }
+        },
+        {
+          "ruleId": "GL002",
+          "ruleIndex": 1,
+          "level": "error",
+          "message": {
+            "text": "Checkov runs while errexit is off (\"set +o errexit\" on line 19 disables it) and is not the last command, so a failing scan does not fail the job"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "testdata/github/.github/workflows/errexit.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 20,
+                  "startColumn": 11
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "gatelintFingerprint/v1": "9569ec6d6a8ba8112a8f58fe2639c89f"
+          },
+          "properties": {
+            "severity": "high",
+            "confidence": "high",
+            "scanner": "Checkov",
+            "job": "scan",
+            "step": "set +o errexit",
+            "fix": "remove \"set +e\", or capture the status with rc=$? and exit with it"
+          }
+        },
+        {
+          "ruleId": "GL006",
+          "ruleIndex": 5,
+          "level": "error",
+          "message": {
+            "text": "Trivy is run with \"--exit-code 0\", which keeps the exit code at 0 when vulnerabilities are found"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "testdata/github/.github/workflows/expressions.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 10,
+                  "startColumn": 69
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "gatelintFingerprint/v1": "e7c49c5047d945a0e17a5aa94ce10994"
+          },
+          "properties": {
+            "severity": "high",
+            "confidence": "high",
+            "scanner": "Trivy",
+            "job": "scan",
+            "step": "Exit code from env expression",
+            "fix": "remove the flag so the scanner exits non-zero on findings"
+          }
+        },
+        {
+          "ruleId": "GL006",
+          "ruleIndex": 5,
+          "level": "error",
+          "message": {
+            "text": "Trivy is run with \"--exit-code 0\", which keeps the exit code at 0 when vulnerabilities are found"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "testdata/github/.github/workflows/expressions.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 12,
+                  "startColumn": 32
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "gatelintFingerprint/v1": "9b64c697e4ef4a8d6d9eaa2e520a2401"
+          },
+          "properties": {
+            "severity": "high",
+            "confidence": "high",
+            "scanner": "Trivy",
+            "job": "scan",
+            "step": "Exit code from shell variable",
+            "fix": "remove the flag so the scanner exits non-zero on findings"
+          }
+        },
+        {
+          "ruleId": "GL001",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "Trivy failure is swallowed by `|| true`"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "testdata/github/.github/workflows/fallback.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 10,
+                  "startColumn": 11
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "gatelintFingerprint/v1": "f822413d7cbb81ce8ad218db5563153a"
+          },
+          "properties": {
+            "severity": "high",
+            "confidence": "medium",
+            "scanner": "Trivy",
+            "job": "scan",
+            "step": "Script the shell parser rejects",
+            "fix": "remove the \"|| true\" (or equivalent) so a failing scan fails the job"
+          }
+        },
+        {
+          "ruleId": "GL006",
+          "ruleIndex": 5,
+          "level": "error",
+          "message": {
+            "text": "Bandit is run with \"--exit-zero\", which exits 0 even when issues are found"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "testdata/github/.github/workflows/flags.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 10,
+                  "startColumn": 38
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "gatelintFingerprint/v1": "981591f8ea3a1ce3749353e4df4aa0c0"
+          },
+          "properties": {
+            "severity": "high",
+            "confidence": "high",
+            "scanner": "Bandit",
+            "job": "cli",
+            "step": "Bandit exit zero",
+            "fix": "remove the flag so the scanner exits non-zero on findings"
+          }
+        },
+        {
+          "ruleId": "GL006",
+          "ruleIndex": 5,
+          "level": "error",
+          "message": {
+            "text": "Checkov is run with \"--soft-fail\", which runs checks but always exits 0"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "testdata/github/.github/workflows/flags.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 12,
+                  "startColumn": 31
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "gatelintFingerprint/v1": "7e66b44a062f104dc73353e158c598c1"
+          },
+          "properties": {
+            "severity": "high",
+            "confidence": "high",
+            "scanner": "Checkov",
+            "job": "cli",
+            "step": "Checkov soft fail",
+            "fix": "remove the flag so the scanner exits non-zero on findings"
+          }
+        },
+        {
+          "ruleId": "GL006",
+          "ruleIndex": 5,
+          "level": "error",
+          "message": {
+            "text": "Gitleaks is run with \"--exit-code=0\", which keeps the exit code at 0 when leaks are found"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "testdata/github/.github/workflows/flags.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 14,
+                  "startColumn": 41
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "gatelintFingerprint/v1": "ed9e2a567d074e3ae9cf5495f45a21e5"
+          },
+          "properties": {
+            "severity": "high",
+            "confidence": "high",
+            "scanner": "Gitleaks",
+            "job": "cli",
+            "step": "Gitleaks exit code zero",
+            "fix": "remove the flag so the scanner exits non-zero on findings"
+          }
+        },
+        {
+          "ruleId": "GL006",
+          "ruleIndex": 5,
+          "level": "error",
+          "message": {
+            "text": "npm audit is run with \"--audit-level=none\", which never exits non-zero"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "testdata/github/.github/workflows/flags.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 16,
+                  "startColumn": 24
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "gatelintFingerprint/v1": "8c98634fecbb3e511b88a06d6d462f75"
+          },
+          "properties": {
+            "severity": "high",
+            "confidence": "high",
+            "scanner": "npm audit",
+            "job": "cli",
+            "step": "npm audit none",
+            "fix": "remove the flag so the scanner exits non-zero on findings"
+          }
+        },
+        {
+          "ruleId": "GL006",
+          "ruleIndex": 5,
+          "level": "error",
+          "message": {
+            "text": "Trivy runs with TRIVY_EXIT_CODE=0 in its environment, which keeps the exit code at 0 when vulnerabilities are found"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "testdata/github/.github/workflows/flags.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 18,
+                  "startColumn": 14
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "gatelintFingerprint/v1": "06605c17307c0ce2b302cd1577f9b043"
+          },
+          "properties": {
+            "severity": "high",
+            "confidence": "high",
+            "scanner": "Trivy",
+            "job": "cli",
+            "step": "Trivy via environment",
+            "fix": "remove the flag so the scanner exits non-zero on findings"
+          }
+        },
+        {
+          "ruleId": "GL006",
+          "ruleIndex": 5,
+          "level": "error",
+          "message": {
+            "text": "Trivy is run with \"--exit-code 0\", which keeps the exit code at 0 when vulnerabilities are found"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "testdata/github/.github/workflows/flags.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 20,
+                  "startColumn": 69
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "gatelintFingerprint/v1": "99bc14ab54105ed94856808923d3f517"
+          },
+          "properties": {
+            "severity": "high",
+            "confidence": "high",
+            "scanner": "Trivy",
+            "job": "cli",
+            "step": "Trivy in docker",
+            "fix": "remove the flag so the scanner exits non-zero on findings"
+          }
+        },
+        {
+          "ruleId": "GL006",
+          "ruleIndex": 5,
+          "level": "error",
+          "message": {
+            "text": "tfsec is run with \"-s\", which runs checks but suppresses the error exit code"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "testdata/github/.github/workflows/flags.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 22,
+                  "startColumn": 22
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "gatelintFingerprint/v1": "7462545df22c77977136ef593a419f91"
+          },
+          "properties": {
+            "severity": "high",
+            "confidence": "high",
+            "scanner": "tfsec",
+            "job": "cli",
+            "step": "tfsec short flag",
+            "fix": "remove the flag so the scanner exits non-zero on findings"
+          }
+        },
+        {
+          "ruleId": "GL006",
+          "ruleIndex": 5,
+          "level": "error",
+          "message": {
+            "text": "gosec is run with \"-no-fail\", which exits 0 even when issues are found"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "testdata/github/.github/workflows/flags.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 24,
+                  "startColumn": 20
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "gatelintFingerprint/v1": "bf756c51305f523726d3b8edcc0f1496"
+          },
+          "properties": {
+            "severity": "high",
+            "confidence": "high",
+            "scanner": "gosec",
+            "job": "cli",
+            "step": "gosec no-fail",
+            "fix": "remove the flag so the scanner exits non-zero on findings"
+          }
+        },
+        {
+          "ruleId": "GL006",
+          "ruleIndex": 5,
+          "level": "error",
+          "message": {
+            "text": "tfsec is run with \"--soft-fail\", which runs checks but suppresses the error exit code"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "testdata/github/.github/workflows/flags.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 28,
+                  "startColumn": 11
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "gatelintFingerprint/v1": "3ffde5d92c886bccdd2c579adc7901f4"
+          },
+          "properties": {
+            "severity": "high",
+            "confidence": "high",
+            "scanner": "tfsec",
+            "job": "cli",
+            "step": "Container action",
+            "fix": "remove the flag so the scanner exits non-zero on findings"
+          }
+        },
+        {
+          "ruleId": "GL003",
+          "ruleIndex": 2,
+          "level": "warning",
+          "message": {
+            "text": "Trivy output is piped into \"tee\" and the shell does not set pipefail, so the step's status is that of \"tee\""
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "testdata/github/.github/workflows/pipefail.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 8,
+                  "startColumn": 14
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "gatelintFingerprint/v1": "9ad8061142126b50a5493e11ab179a02"
+          },
+          "properties": {
+            "severity": "medium",
+            "confidence": "high",
+            "scanner": "Trivy",
+            "job": "scan",
+            "step": "Default shell pipes into tee",
+            "fix": "set \"shell: bash\" on the step (it adds -o pipefail) or add \"set -o pipefail\" before the pipeline"
+          }
+        },
+        {
+          "ruleId": "GL003",
+          "ruleIndex": 2,
+          "level": "warning",
+          "message": {
+            "text": "Gitleaks output is piped into \"tee\" and the shell does not set pipefail, so the step's status is that of \"tee\""
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "testdata/github/.github/workflows/pipefail.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 11,
+                  "startColumn": 14
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "gatelintFingerprint/v1": "50d559d29b46bbea01461d7bd82f94cc"
+          },
+          "properties": {
+            "severity": "medium",
+            "confidence": "high",
+            "scanner": "Gitleaks",
+            "job": "scan",
+            "step": "sh pipes into tee",
+            "fix": "set \"shell: bash\" on the step (it adds -o pipefail) or add \"set -o pipefail\" before the pipeline"
+          }
+        },
+        {
+          "ruleId": "GL003",
+          "ruleIndex": 2,
+          "level": "warning",
+          "message": {
+            "text": "Semgrep output is piped into \"jq\" and the shell does not set pipefail, so the step's status is that of \"jq\""
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "testdata/github/.github/workflows/pipefail.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 15,
+                  "startColumn": 11
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "gatelintFingerprint/v1": "5ea2f75a5b2bd9cee3dff7d8414ba339"
+          },
+          "properties": {
+            "severity": "medium",
+            "confidence": "high",
+            "scanner": "Semgrep",
+            "job": "scan",
+            "step": "Custom shell without pipefail",
+            "fix": "set \"shell: bash\" on the step (it adds -o pipefail) or add \"set -o pipefail\" before the pipeline"
+          }
+        },
+        {
+          "ruleId": "GL006",
+          "ruleIndex": 5,
+          "level": "note",
+          "message": {
+            "text": "Checkov is run with \"-s\", which runs checks but always exits 0"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "testdata/github/.github/workflows/redirect-report.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 9,
+                  "startColumn": 19
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "gatelintFingerprint/v1": "fb99807525124a9a9f8d48d8f2c2a1d5"
+          },
+          "properties": {
+            "severity": "low",
+            "confidence": "high",
+            "scanner": "Checkov",
+            "job": "integration",
+            "step": "Scan a deliberately vulnerable fixture and check the report",
+            "fix": "remove the flag so the scanner exits non-zero on findings",
+            "notes": [
+              "a later command at testdata/github/.github/workflows/redirect-report.yml:10 appears to fail the build based on checkov_report.txt"
+            ]
+          }
+        },
+        {
+          "ruleId": "GL006",
+          "ruleIndex": 5,
+          "level": "error",
+          "message": {
+            "text": "Checkov is run with \"-s\", which runs checks but always exits 0"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "testdata/github/.github/workflows/redirect-report.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 13,
+                  "startColumn": 22
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "gatelintFingerprint/v1": "48e3f045faa993133b4ad04af6c4a68e"
+          },
+          "properties": {
+            "severity": "high",
+            "confidence": "high",
+            "scanner": "Checkov",
+            "job": "integration",
+            "step": "Report kept but never checked",
+            "fix": "remove the flag so the scanner exits non-zero on findings"
+          }
+        },
+        {
+          "ruleId": "GL006",
+          "ruleIndex": 5,
+          "level": "note",
+          "message": {
+            "text": "Gitleaks is run with \"--exit-code 0\", which keeps the exit code at 0 when leaks are found"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "testdata/github/.github/workflows/redirect-report.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 16,
+                  "startColumn": 30
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "gatelintFingerprint/v1": "8c956ee7ff4e7d2f62721e33883d5607"
+          },
+          "properties": {
+            "severity": "low",
+            "confidence": "high",
+            "scanner": "Gitleaks",
+            "job": "integration",
+            "step": "Tee into a report that is gated later",
+            "fix": "remove the flag so the scanner exits non-zero on findings",
+            "notes": [
+              "a later command at testdata/github/.github/workflows/redirect-report.yml:19 appears to fail the build based on leaks.txt"
+            ]
+          }
+        },
+        {
+          "ruleId": "GL008",
+          "ruleIndex": 7,
+          "level": "note",
+          "message": {
+            "text": "aquasecurity/trivy-action input \"exit-code: 0\" makes the action exit 0 when vulnerabilities are found"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "testdata/github/.github/workflows/report-only.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 13,
+                  "startColumn": 11
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "gatelintFingerprint/v1": "72eef2dedd845c25bd0ecec4b4aca8e1"
+          },
+          "properties": {
+            "severity": "low",
+            "confidence": "high",
+            "scanner": "Trivy",
+            "job": "trivy",
+            "step": "Trivy SARIF for code scanning",
+            "fix": "remove the input (or set it to its gating value) so findings fail the step",
+            "notes": [
+              "Trivy also runs in gating mode at testdata/github/.github/workflows/report-only.yml:18, so this run looks report-only"
+            ]
+          }
+        },
+        {
+          "ruleId": "GL007",
+          "ruleIndex": 6,
+          "level": "note",
+          "message": {
+            "text": "Semgrep exits 0 when it finds issues and no gating option is set"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "testdata/github/.github/workflows/report-only.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 27,
+                  "startColumn": 14
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "gatelintFingerprint/v1": "dac27532c18a633111ab44780430a535"
+          },
+          "properties": {
+            "severity": "low",
+            "confidence": "high",
+            "scanner": "Semgrep",
+            "job": "semgrep",
+            "step": "Semgrep SARIF",
+            "fix": "add --error so findings fail the build",
+            "notes": [
+              "results are uploaded to code scanning, which blocks merges only when code scanning merge protection is configured"
+            ]
+          }
+        },
+        {
+          "ruleId": "GL006",
+          "ruleIndex": 5,
+          "level": "note",
+          "message": {
+            "text": "Gitleaks is run with \"--exit-code 0\", which keeps the exit code at 0 when leaks are found"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "testdata/github/.github/workflows/report-only.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 35,
+                  "startColumn": 30
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "gatelintFingerprint/v1": "ee9a99fcffc900c37f132ba62fa44830"
+          },
+          "properties": {
+            "severity": "low",
+            "confidence": "high",
+            "scanner": "Gitleaks",
+            "job": "gitleaks",
+            "step": "Report",
+            "fix": "remove the flag so the scanner exits non-zero on findings",
+            "notes": [
+              "a later command at testdata/github/.github/workflows/report-only.yml:38 appears to fail the build based on leaks.json"
+            ]
+          }
+        },
+        {
+          "ruleId": "GL001",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "Grype failure is swallowed by `|| true`"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "testdata/github/.github/workflows/reusable-scan.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 13,
+                  "startColumn": 11
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "gatelintFingerprint/v1": "530d97bca8b29d1446892c60092c8e0c"
+          },
+          "properties": {
+            "severity": "high",
+            "confidence": "high",
+            "scanner": "Grype",
+            "job": "scan",
+            "step": "Scan ${{ matrix.target }}",
+            "fix": "remove the \"|| true\" (or equivalent) so a failing scan fails the job"
+          }
+        },
+        {
+          "ruleId": "GL004",
+          "ruleIndex": 3,
+          "level": "error",
+          "message": {
+            "text": "Semgrep runs in a step with continue-on-error: true, so a failing scan does not fail the workflow"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "testdata/github/.github/workflows/suppressions.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 9,
+                  "startColumn": 9
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "gatelintFingerprint/v1": "8ffae34c2951e7bbbffdcaee2cc18657"
+          },
+          "suppressions": [
+            {
+              "kind": "inSource",
+              "justification": "nightly report only; the PR gate lives in ci.yml"
+            }
+          ],
+          "properties": {
+            "severity": "high",
+            "confidence": "high",
+            "scanner": "Semgrep",
+            "job": "scan",
+            "step": "Suppressed with a reason",
+            "fix": "remove continue-on-error, or move non-blocking experiments to a separate job"
+          }
+        },
+        {
+          "ruleId": "GL001",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "Trivy failure is swallowed by `|| true`"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "testdata/github/.github/workflows/suppressions.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 12,
+                  "startColumn": 14
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "gatelintFingerprint/v1": "a7ab1eea019259722024e49e606be5fc"
+          },
+          "suppressions": [
+            {
+              "kind": "inSource",
+              "justification": "tracked in SEC-1234 until the base image is fixed"
+            }
+          ],
+          "properties": {
+            "severity": "high",
+            "confidence": "high",
+            "scanner": "Trivy",
+            "job": "scan",
+            "step": "Same-line suppression",
+            "fix": "remove the \"|| true\" (or equivalent) so a failing scan fails the job"
+          }
+        },
+        {
+          "ruleId": "GL006",
+          "ruleIndex": 5,
+          "level": "error",
+          "message": {
+            "text": "Bandit is run with \"--exit-zero\", which exits 0 even when issues are found"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "testdata/github/.github/workflows/suppressions.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 14,
+                  "startColumn": 28
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "gatelintFingerprint/v1": "0440d7fa0f11a2ef994f513e16525382"
+          },
+          "properties": {
+            "severity": "high",
+            "confidence": "high",
+            "scanner": "Bandit",
+            "job": "scan",
+            "step": "Missing reason",
+            "fix": "remove the flag so the scanner exits non-zero on findings"
+          }
+        },
+        {
+          "ruleId": "GL010",
+          "ruleIndex": 9,
+          "level": "note",
+          "message": {
+            "text": "suppression has no reason, so it does not suppress anything"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "testdata/github/.github/workflows/suppressions.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 14,
+                  "startColumn": 40
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "gatelintFingerprint/v1": "e0a2d6dc57e93465853f961cb09e8513"
+          },
+          "properties": {
+            "severity": "low",
+            "confidence": "high",
+            "fix": "add a reason of at least 10 characters after the rule IDs"
+          }
+        },
+        {
+          "ruleId": "GL010",
+          "ruleIndex": 9,
+          "level": "note",
+          "message": {
+            "text": "suppression has a reason shorter than 10 characters, so it does not suppress anything"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "testdata/github/.github/workflows/suppressions.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 16,
+                  "startColumn": 9
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "gatelintFingerprint/v1": "3b0070456be0085b788780935416b7dc"
+          },
+          "properties": {
+            "severity": "low",
+            "confidence": "high",
+            "fix": "add a reason of at least 10 characters after the rule IDs"
+          }
+        },
+        {
+          "ruleId": "GL004",
+          "ruleIndex": 3,
+          "level": "error",
+          "message": {
+            "text": "Gitleaks runs in a step with continue-on-error: true, so a failing scan does not fail the workflow"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "testdata/github/.github/workflows/suppressions.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 17,
+                  "startColumn": 9
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "gatelintFingerprint/v1": "5591a4024585f7e25cbf7325b76992a2"
+          },
+          "properties": {
+            "severity": "high",
+            "confidence": "high",
+            "scanner": "Gitleaks",
+            "job": "scan",
+            "step": "Short reason",
+            "fix": "remove continue-on-error, or move non-blocking experiments to a separate job"
+          }
+        },
+        {
+          "ruleId": "GL010",
+          "ruleIndex": 9,
+          "level": "note",
+          "message": {
+            "text": "suppression names unknown rule GL999"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "testdata/github/.github/workflows/suppressions.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 20,
+                  "startColumn": 27
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "gatelintFingerprint/v1": "2231be787612362223c40a3336a1ff86"
+          },
+          "properties": {
+            "severity": "low",
+            "confidence": "high",
+            "fix": "add a reason of at least 10 characters after the rule IDs"
+          }
+        },
+        {
+          "ruleId": "GL001",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "Trivy failure is swallowed by `|| true`"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "testdata/github/.github/workflows/swallow.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 9,
+                  "startColumn": 14
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "gatelintFingerprint/v1": "2f118c961804d524b148b20d6bce5c4d"
+          },
+          "properties": {
+            "severity": "high",
+            "confidence": "high",
+            "scanner": "Trivy",
+            "job": "scan",
+            "step": "Trivy or true",
+            "fix": "remove the \"|| true\" (or equivalent) so a failing scan fails the job"
+          }
+        },
+        {
+          "ruleId": "GL001",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "Gitleaks failure is swallowed by `|| echo \"leaks found, continuing\"`"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "testdata/github/.github/workflows/swallow.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 12,
+                  "startColumn": 11
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "gatelintFingerprint/v1": "c7720404e9bfba6d62babdf4e783ef63"
+          },
+          "properties": {
+            "severity": "high",
+            "confidence": "high",
+            "scanner": "Gitleaks",
+            "job": "scan",
+            "step": "Gitleaks or echo",
+            "fix": "remove the \"|| true\" (or equivalent) so a failing scan fails the job"
+          }
+        },
+        {
+          "ruleId": "GL001",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "Semgrep exit status is inverted with \"!\", which also exempts it from errexit"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "testdata/github/.github/workflows/swallow.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 14,
+                  "startColumn": 17
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "gatelintFingerprint/v1": "a6b92b9fa83b375804f3a8a3c0b12d76"
+          },
+          "properties": {
+            "severity": "high",
+            "confidence": "high",
+            "scanner": "Semgrep",
+            "job": "scan",
+            "step": "Negated semgrep",
+            "fix": "remove the \"!\" in front of the scanner"
+          }
+        },
+        {
+          "ruleId": "GL001",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "Bandit is on the left of `&& echo \"bandit passed\"` in the middle of the script; bash exempts it from errexit, so a failing scan does not stop the job"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "testdata/github/.github/workflows/swallow.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 17,
+                  "startColumn": 11
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "gatelintFingerprint/v1": "deb8e7843af3468644da0f02ed6ea0f6"
+          },
+          "properties": {
+            "severity": "high",
+            "confidence": "high",
+            "scanner": "Bandit",
+            "job": "scan",
+            "step": "And list in the middle",
+            "fix": "run the scanner as its own command, or append \"|| exit 1\" to the list"
+          }
+        },
+        {
+          "ruleId": "GL001",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "Checkov runs as an if/while condition and no branch exits with an error"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "testdata/github/.github/workflows/swallow.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 21,
+                  "startColumn": 16
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "gatelintFingerprint/v1": "f82ea19c0224e5b8b8596face2db1163"
+          },
+          "properties": {
+            "severity": "high",
+            "confidence": "high",
+            "scanner": "Checkov",
+            "job": "scan",
+            "step": "If without failing branch",
+            "fix": "add \"exit 1\" to the branch that handles a failed scan"
+          }
+        },
+        {
+          "ruleId": "GL001",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "npm audit runs inside a command substitution whose status is discarded by `echo`"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "testdata/github/.github/workflows/swallow.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 26,
+                  "startColumn": 19
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "gatelintFingerprint/v1": "6ed15c075b392d75c8c3e445fa64ff30"
+          },
+          "properties": {
+            "severity": "high",
+            "confidence": "high",
+            "scanner": "npm audit",
+            "job": "scan",
+            "step": "Command substitution",
+            "fix": "run the scanner directly and capture its output with --output instead of $(...)"
+          }
+        },
+        {
+          "ruleId": "GL001",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "Snyk runs in the background with \"&\", so its exit status is never checked"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "testdata/github/.github/workflows/swallow.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 30,
+                  "startColumn": 11
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "gatelintFingerprint/v1": "af489e26978337ec99ad61f5dd6e2dd5"
+          },
+          "properties": {
+            "severity": "high",
+            "confidence": "high",
+            "scanner": "Snyk",
+            "job": "scan",
+            "step": "Background",
+            "fix": "run the scanner in the foreground, or \"wait\" for it and check its status"
+          }
+        },
+        {
+          "ruleId": "GL001",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "tfsec failure is swallowed by `|| exit 0`"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "testdata/github/.github/workflows/swallow.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 33,
+                  "startColumn": 14
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "gatelintFingerprint/v1": "e856cd3d1ce4ce83100baa0d132e7eff"
+          },
+          "properties": {
+            "severity": "high",
+            "confidence": "high",
+            "scanner": "tfsec",
+            "job": "scan",
+            "step": "Exit zero",
+            "fix": "remove the \"|| true\" (or equivalent) so a failing scan fails the job"
+          }
+        },
+        {
+          "ruleId": "GL006",
+          "ruleIndex": 5,
+          "level": "error",
+          "message": {
+            "text": "Trivy is run with \"--exit-code 0\", which keeps the exit code at 0 when vulnerabilities are found"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "testdata/github/.github/workflows/windows.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 8,
+                  "startColumn": 23
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "gatelintFingerprint/v1": "7837c4c7b417f915bef3e554d1fb6d5c"
+          },
+          "properties": {
+            "severity": "high",
+            "confidence": "medium",
+            "scanner": "Trivy",
+            "job": "scan",
+            "step": "Trivy in pwsh",
+            "fix": "remove the flag so the scanner exits non-zero on findings"
+          }
+        },
+        {
+          "ruleId": "GL001",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "Bandit failure is swallowed by `|| Write-Host \"bandit failed\"`"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "testdata/github/.github/workflows/windows.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 10,
+                  "startColumn": 14
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "gatelintFingerprint/v1": "56771d995a4dfc891668632942a72184"
+          },
+          "properties": {
+            "severity": "high",
+            "confidence": "medium",
+            "scanner": "Bandit",
+            "job": "scan",
+            "step": "Bandit in pwsh swallowed",
+            "fix": "remove the \"|| true\" (or equivalent) so a failing scan fails the job"
+          }
+        }
+      ],
+      "originalUriBaseIds": {
+        "%SRCROOT%": {
+          "uri": "./"
+        }
+      }
+    }
+  ]
+}
